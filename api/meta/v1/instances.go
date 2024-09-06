@@ -4,7 +4,7 @@ import (
 	"slices"
 )
 
-type ServiceInstances = List[ServiceInstance]
+type ServiceInstances = CopyableList[ServiceInstance]
 
 type ServiceInstance struct {
 	Service  string       `json:"service"'`

@@ -8,14 +8,12 @@ import (
 	"github.com/open-component-model/service-model/api/modeldesc/vpi"
 )
 
-const TYPE = "ServiceProvider"
-
 func init() {
 	types.RegisterServiceType(vpi.NewServiceKindType[ServiceSpec](me.TYPE, Converter{}))
 }
 
 type ServiceSpec struct {
-	metav1.CommonServiceImplementationSpec
+	metav1.CommonConsumerServiceImplementationSpec
 }
 
 type Converter struct{}

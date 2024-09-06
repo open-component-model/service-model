@@ -4,7 +4,7 @@ import (
 	"slices"
 )
 
-type Dependencies = List[Dependency]
+type Dependencies = CopyableList[Dependency]
 
 type Dependency struct {
 	Name               string           `json:"name"`
@@ -13,7 +13,7 @@ type Dependency struct {
 	VersionConstraints []string         `json:"versionConstraints,omitempty"`
 	ServiceInstances   ServiceInstances `json:"serviceInstances,omitempty"`
 	Optional           bool             `json:"optional"`
-	Description        string           `json:"description"`
+	Description        string           `json:"description,omitempty"`
 	Labels             Labels           `json:"labels,omitempty"`
 }
 

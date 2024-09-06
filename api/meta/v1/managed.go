@@ -4,7 +4,7 @@ import (
 	"slices"
 )
 
-type ManagedServices = List[ManagedService]
+type ManagedServices = CopyableList[ManagedService]
 
 type ManagedService struct {
 	Service               ServiceIdentity       `json:"service"`
@@ -20,7 +20,7 @@ func (s ManagedService) Copy() *ManagedService {
 	return &s
 }
 
-type DependencyResolutions = List[DependencyResolution]
+type DependencyResolutions = CopyableList[DependencyResolution]
 
 type DependencyResolution struct {
 	Managed    bool `json:"managed"`

@@ -1,4 +1,4 @@
-package provider_test
+package installer_test
 
 import (
 	"reflect"
@@ -10,7 +10,7 @@ import (
 	"ocm.software/ocm/api/utils/runtime"
 
 	modeldesc "github.com/open-component-model/service-model/api/modeldesc/internal"
-	me "github.com/open-component-model/service-model/api/modeldesc/types/provider"
+	me "github.com/open-component-model/service-model/api/modeldesc/types/installer"
 	v1 "github.com/open-component-model/service-model/api/modeldesc/versions/v1"
 )
 
@@ -33,7 +33,6 @@ services:
     - name: dummy
       version: v1
       value: service
-  external: true
   dependencies:
   - name: dep
     description: optional dependency to reporter instance creation
@@ -60,25 +59,22 @@ services:
     - name: dummy
       value: contract
       version: v1
-
-  managedServices:
-    - service: managed
-      versions:
-      - v1
-      labels:
-      - name: service
-        version: v1
-        value: managed
-      dependencyResolutions:
-      - managed: true
-        configured: false
-     
+  targetEnvironment:
+    iaas: AWS
+  installedService: test
+  versions:
+  - v1
+  installerResource:
+    resource:
+      name: rsc1
+    referencePath:
+      - name: ref1
+  installerType: dummy
 `
 	Context("serialization", func() {
 		It("back and forth", func() {
 			desc := Must(version.Decode([]byte(data1), runtime.DefaultYAMLEncoding))
 			Expect(len(desc.Services)).To(Equal(1))
-			Expect(reflect.TypeOf(desc.Services[0].Kind).String()).To(Equal(reflect.TypeOf(&me.ServiceSpec{}).String()))
 			Expect(reflect.TypeOf(desc.Services[0].Kind)).To(Equal(reflect.TypeOf(&me.ServiceSpec{})))
 
 			data := Must(modeldesc.Encode(desc))

@@ -1,12 +1,11 @@
 package v1
 
-type Contracts = List[Contract]
+type Contracts = CopyableList[Contract]
 
 type Contract struct {
-	Service     ServiceIdentity `json:"service"`
-	Version     string          `json:"version"`
-	Description string          `json:"description"`
-	Labels      Labels          `json:"labels"`
+	Service ServiceIdentity `json:"service"`
+	Version string          `json:"version,omitempty"`
+	Labels  Labels          `json:"labels,omitempty"`
 }
 
 func (c Contract) Copy() *Contract {

@@ -7,7 +7,7 @@ import (
 const TYPE = "ServiceProvider"
 
 type ServiceSpec struct {
-	metav1.CommonServiceImplementationSpec
+	metav1.CommonConsumerServiceImplementationSpec
 
 	ManagedServices metav1.ManagedServices `json:"managedServices"`
 }

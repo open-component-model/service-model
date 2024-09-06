@@ -5,35 +5,44 @@ import (
 )
 
 type BaseServiceSpec struct {
-	Service     string  `json:"service"`
-	ShortName   string  `json:"shortName"`
-	Description string  `json:"description"`
-	Labels      Labels  `json:"labels"`
-	Variant     Variant `json:"variant"`
-	Abstract    bool    `json:"abstract"`
-	InheritFrom Variant `json:"inheritFrom"`
+	Service     ServiceIdentity `json:"service"`
+	Version     string          `json:"version,omitempty"`
+	ShortName   string          `json:"shortName"`
+	Description string          `json:"description,omitempty"`
+	Labels      Labels          `json:"labels,omitempty"`
 }
 
 func (s *BaseServiceSpec) Copy() *BaseServiceSpec {
 	c := *s
 	c.Labels = s.Labels.Copy()
-	c.Variant = s.Variant.Copy()
-	c.InheritFrom = s.InheritFrom.Copy()
 	return &c
 }
 
 type CommonServiceImplementationSpec struct {
-	runtime.ObjectTypedObject
-	External     bool         `json:"external"`
-	Dependencies Dependencies `json:"dependencies,omitempty"`
-	Contracts    Contracts    `json:"contracts,omitempty"`
-	Installers   Installers   `json:"installers,omitempty"`
+	runtime.ObjectTypedObject `json:",inline"`
+	Variant                   Variant      `json:"variant,omitempty"`
+	Abstract                  bool         `json:"abstract"`
+	InheritFrom               Variant      `json:"inheritFrom,omitempty"`
+	Dependencies              Dependencies `json:"dependencies,omitempty"`
+	Contracts                 Contracts    `json:"contracts,omitempty"`
 }
 
-func (s *CommonServiceImplementationSpec) Copy() *CommonServiceImplementationSpec {
-	c := *s
-	c.Dependencies = s.Dependencies.Copy()
-	c.Contracts = s.Contracts.Copy()
-	c.Installers = s.Installers.Copy()
+func (c CommonServiceImplementationSpec) Copy() *CommonServiceImplementationSpec {
+	c.Dependencies = c.Dependencies.Copy()
+	c.Variant = c.Variant.Copy()
+	c.InheritFrom = c.InheritFrom.Copy()
+	c.Contracts = c.Contracts.Copy()
+	return &c
+}
+
+type CommonConsumerServiceImplementationSpec struct {
+	CommonServiceImplementationSpec `json:",inline"`
+	External                        bool       `json:"external"`
+	Installers                      Installers `json:"installers,omitempty"`
+}
+
+func (c CommonConsumerServiceImplementationSpec) Copy() *CommonConsumerServiceImplementationSpec {
+	c.CommonServiceImplementationSpec = *c.CommonServiceImplementationSpec.Copy()
+	c.Installers = c.Installers.Copy()
 	return &c
 }

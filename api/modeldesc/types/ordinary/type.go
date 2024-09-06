@@ -7,5 +7,5 @@ import (
 const TYPE = "OrdinaryService"
 
 type ServiceSpec struct {
-	metav1.CommonServiceImplementationSpec
+	metav1.CommonConsumerServiceImplementationSpec
 }
