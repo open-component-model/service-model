@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"github.com/open-component-model/service-model/api/utils"
 	v1 "ocm.software/ocm/api/ocm/compdesc/meta/v1"
 )
 
@@ -18,7 +19,7 @@ func (r *InstallerResource) Copy() *InstallerResource {
 	}
 	c := *r
 	c.Resource = r.Resource.Copy()
-	c.ReferencePath = make([]v1.Identity, len(r.ReferencePath), len(r.ReferencePath))
+	c.ReferencePath = utils.InitialSliceFor(r.ReferencePath)
 	for i, e := range r.ReferencePath {
 		c.ReferencePath[i] = e.Copy()
 	}

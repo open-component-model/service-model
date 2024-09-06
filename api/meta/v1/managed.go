@@ -2,9 +2,20 @@ package v1
 
 import (
 	"slices"
+
+	"github.com/open-component-model/service-model/api/utils"
 )
 
-type ManagedServices = CopyableList[ManagedService]
+const (
+	DEPRES_MANGED     = "managed"
+	DEPRES_CONFIGURED = "configured"
+
+	DEPUSE_EXCLUSIVE  = "exclusive"
+	DEPUSE_SHARED     = "shared"
+	DEPUSE_CONFIGURED = "configured"
+)
+
+type ManagedServices = utils.CopyableList[ManagedService]
 
 type ManagedService struct {
 	Service               ServiceIdentity       `json:"service"`
@@ -20,13 +31,16 @@ func (s ManagedService) Copy() *ManagedService {
 	return &s
 }
 
-type DependencyResolutions = CopyableList[DependencyResolution]
+type DependencyResolutions = utils.CopyableList[DependencyResolution]
 
 type DependencyResolution struct {
-	Managed    bool `json:"managed"`
-	Configured bool `json:"configured"`
+	Name       string `json:"name"`
+	Resolution string `json:"resolution"`
+	Usage      string `json:"usage"`
+	Labels     Labels `json:"labels,omitempty"`
 }
 
 func (d DependencyResolution) Copy() *DependencyResolution {
+	d.Labels = d.Labels.Copy()
 	return &d
 }

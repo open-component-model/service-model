@@ -4,7 +4,7 @@ import (
 	"ocm.software/ocm/api/utils/runtime"
 )
 
-type BaseServiceSpec struct {
+type CommonServiceSpec struct {
 	Service     ServiceIdentity `json:"service"`
 	Version     string          `json:"version,omitempty"`
 	ShortName   string          `json:"shortName"`
@@ -12,7 +12,7 @@ type BaseServiceSpec struct {
 	Labels      Labels          `json:"labels,omitempty"`
 }
 
-func (s *BaseServiceSpec) Copy() *BaseServiceSpec {
+func (s *CommonServiceSpec) Copy() *CommonServiceSpec {
 	c := *s
 	c.Labels = s.Labels.Copy()
 	return &c
@@ -21,7 +21,7 @@ func (s *BaseServiceSpec) Copy() *BaseServiceSpec {
 type CommonServiceImplementationSpec struct {
 	runtime.ObjectTypedObject `json:",inline"`
 	Variant                   Variant      `json:"variant,omitempty"`
-	Abstract                  bool         `json:"abstract"`
+	Abstract                  bool         `json:"abstract,omitempty"`
 	InheritFrom               Variant      `json:"inheritFrom,omitempty"`
 	Dependencies              Dependencies `json:"dependencies,omitempty"`
 	Contracts                 Contracts    `json:"contracts,omitempty"`
@@ -37,7 +37,7 @@ func (c CommonServiceImplementationSpec) Copy() *CommonServiceImplementationSpec
 
 type CommonConsumerServiceImplementationSpec struct {
 	CommonServiceImplementationSpec `json:",inline"`
-	External                        bool       `json:"external"`
+	External                        bool       `json:"external,omitempty"`
 	Installers                      Installers `json:"installers,omitempty"`
 }
 

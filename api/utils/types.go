@@ -1,4 +1,4 @@
-package v1
+package utils
 
 import (
 	"maps"
@@ -11,7 +11,7 @@ type Copyable[T any] interface {
 type CopyableList[T Copyable[T]] []T
 
 func (l CopyableList[T]) Copy() CopyableList[T] {
-	c := make([]T, len(l), len(l))
+	c := InitialSliceFor(l)
 	for i, e := range l {
 		c[i] = *e.Copy()
 	}

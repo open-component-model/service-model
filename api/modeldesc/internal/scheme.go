@@ -2,6 +2,7 @@ package internal
 
 import (
 	"github.com/mandelsoft/goutils/errors"
+	"github.com/mandelsoft/goutils/general"
 	"ocm.software/ocm/api/utils/runtime"
 )
 
@@ -18,14 +19,14 @@ func RegisterVersion(v Version) {
 	versions.Register(v)
 }
 
-func Decode(data []byte) (*ServiceModelDescriptor, error) {
-	return versions.Decode(data, runtime.DefaultYAMLEncoding)
+func Decode(data []byte, unmarshaller ...runtime.Unmarshaler) (*ServiceModelDescriptor, error) {
+	return versions.Decode(data, general.OptionalDefaulted[runtime.Unmarshaler](runtime.DefaultYAMLEncoding, unmarshaller...))
 }
 
-func Encode(m *ServiceModelDescriptor) ([]byte, error) {
+func Encode(m *ServiceModelDescriptor, marshaller ...runtime.Marshaler) ([]byte, error) {
 	t := versions.GetType(m.GetType())
 	if t == nil {
 		return nil, errors.ErrNotFound(KIND_MODELVERSION, m.GetType())
 	}
-	return t.Encode(m, runtime.DefaultYAMLEncoding.Marshaler)
+	return t.Encode(m, general.OptionalDefaulted[runtime.Marshaler](runtime.DefaultYAMLEncoding, marshaller...))
 }

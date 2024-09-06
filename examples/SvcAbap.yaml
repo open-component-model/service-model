@@ -1,0 +1,18 @@
+type: relativeServiceModelDescription/v1
+services:
+  - service: abap
+    type: OrdinaryService
+    shortName: ABAP System
+    description: An ABAP system provided by the Steampunk service provider
+
+    dependencies:
+      - name: runtime
+        kind: implementation
+        service: kubernetes.io/apis/cluster
+        versionConstraints:
+          - 1.22.x
+      - name: database
+        kind: implementation
+        service: acme.org/hana/apis/database
+        versionConstraints:
+          - 1.5.x

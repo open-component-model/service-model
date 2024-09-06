@@ -1,5 +1,9 @@
 package vpi
 
+import (
+	"github.com/open-component-model/service-model/api/utils"
+)
+
 type Converter[I any, E any] interface {
 	// ConvertFrom converts from an internal version into an external format.
 	ConvertFrom(object I) (E, error)
@@ -18,7 +22,7 @@ func NewListConverter[I, E any](element Converter[*I, *E]) *ListConverter[I, E] 
 }
 
 func (l *ListConverter[I, E]) ConvertFrom(in []I) ([]E, error) {
-	out := make([]E, len(in), len(in))
+	out := utils.InitialSliceWithTypeFor[[]E](in)
 	for i, e := range in {
 		r, err := l.element.ConvertFrom(&e)
 		if err != nil {
@@ -30,7 +34,7 @@ func (l *ListConverter[I, E]) ConvertFrom(in []I) ([]E, error) {
 }
 
 func (l *ListConverter[I, E]) ConvertTo(in []E) ([]I, error) {
-	out := make([]I, len(in), len(in))
+	out := utils.InitialSliceWithTypeFor[[]I](in)
 	for i, e := range in {
 		r, err := l.element.ConvertTo(&e)
 		if err != nil {

@@ -1,0 +1,12 @@
+type: relativeServiceModelDescription/v1
+services:
+  - service: database
+    type: OrdinaryService
+    shortName: Hana Database
+
+    dependencies:
+      - name: runtime
+        kind: implementation
+        service: kubernetes.io/apis/cluster
+        versionConstraints:
+          - 1.22.x

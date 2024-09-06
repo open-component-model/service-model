@@ -6,9 +6,9 @@ import (
 	"github.com/open-component-model/service-model/api/modeldesc/vpi"
 )
 
-type BaseServiceSpec = metav1.BaseServiceSpec
+type CommonServiceSpec = metav1.CommonServiceSpec
 
-type ServiceDescriptor = vpi.ServiceDescriptor[BaseServiceSpec, SchemeProvider]
+type ServiceDescriptor = vpi.ServiceDescriptor[CommonServiceSpec, SchemeProvider]
 
 type ServiceDescriptionConverter struct{}
 
@@ -20,7 +20,7 @@ func (s ServiceDescriptionConverter) ConvertFrom(in *modeldesc.ServiceDescriptor
 	var err error
 	var out ServiceDescriptor
 
-	out.Base = *ConvertBaseFrom(&in.BaseServiceSpec)
+	out.Base = *ConvertBaseFrom(&in.CommonServiceSpec)
 	out.Kind, err = DefaultServiceTypeScheme.ConvertFrom(in.Kind)
 	if err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func (s ServiceDescriptionConverter) ConvertTo(in *ServiceDescriptor) (*modeldes
 	var err error
 	var out modeldesc.ServiceDescriptor
 
-	out.BaseServiceSpec = *ConvertBaseTo(&in.Base)
+	out.CommonServiceSpec = *ConvertBaseTo(&in.Base)
 	out.Kind, err = DefaultServiceTypeScheme.ConvertTo(in.Kind)
 	if err != nil {
 		return nil, err

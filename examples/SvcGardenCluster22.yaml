@@ -1,0 +1,8 @@
+type: relativeServiceModelDescription/v1
+services:
+  - service: cluster
+    type: OrdinaryService
+    shortName: Kubernetes Cluster managed by Gardener with version 1.22.x
+    contracts:
+      - service: acme.org/kubernetes/apis/cluster
+        version: v1.22.0

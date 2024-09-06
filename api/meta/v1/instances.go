@@ -2,15 +2,17 @@ package v1
 
 import (
 	"slices"
+
+	"github.com/open-component-model/service-model/api/utils"
 )
 
-type ServiceInstances = CopyableList[ServiceInstance]
+type ServiceInstances = utils.CopyableList[ServiceInstance]
 
 type ServiceInstance struct {
-	Service  string       `json:"service"'`
-	Versions []string     `json:"versions,omitempty"'`
-	Dynamic  bool         `json:"dynamic"`
-	Static   []StaticInfo `json:"static,omitempty"`
+	Service  ServiceIdentity `json:"service"'`
+	Versions []string        `json:"versions,omitempty"'`
+	Dynamic  bool            `json:"dynamic"`
+	Static   []StaticInfo    `json:"static,omitempty"`
 }
 
 func (i ServiceInstance) Copy() *ServiceInstance {

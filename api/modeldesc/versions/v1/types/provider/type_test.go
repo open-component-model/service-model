@@ -70,9 +70,13 @@ services:
         version: v1
         value: managed
       dependencyResolutions:
-      - managed: true
-        configured: false
-     
+      - name: dep
+        resolution: managed
+        usage: shared
+        labels:
+           - name: dep
+             version: v1
+             value: bla
 `
 	Context("serialization", func() {
 		It("back and forth", func() {

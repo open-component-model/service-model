@@ -1,6 +1,10 @@
 package v1
 
-type Installers = CopyableList[Installer]
+import (
+	"github.com/open-component-model/service-model/api/utils"
+)
+
+type Installers = utils.CopyableList[Installer]
 
 type Installer struct {
 	Service     ServiceIdentity `json:"service"`

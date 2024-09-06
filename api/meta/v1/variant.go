@@ -1,3 +1,7 @@
 package v1
 
-type Variant = StringMap
+import (
+	"github.com/open-component-model/service-model/api/utils"
+)
+
+type Variant = utils.StringMap

@@ -1,0 +1,26 @@
+type: relativeServiceModelDescription/v1
+services:
+  - service: provider
+    type: ServiceProvider
+    shortName: Gardener Kubernetes as a Service Management
+
+    managedServices:
+      - service: acme.org/gardener/apis/cluster
+        versions:
+          - v1.22.0
+          - v1.23.0
+
+    installers:
+      - service: installer
+
+  - service: installer
+    type: InstallationService
+    shortName: Installer for Gardener
+    installedService: provider
+    targetEnvironment:
+      type: KubernetesCluster
+    installerType: Deplomat
+
+    installerResource:
+      resource:
+        name: installer

@@ -1,6 +1,10 @@
 package v1
 
-type Contracts = CopyableList[Contract]
+import (
+	"github.com/open-component-model/service-model/api/utils"
+)
+
+type Contracts = utils.CopyableList[Contract]
 
 type Contract struct {
 	Service ServiceIdentity `json:"service"`

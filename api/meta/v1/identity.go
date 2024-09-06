@@ -3,11 +3,17 @@ package v1
 import (
 	"encoding/json"
 	"strings"
+
+	"github.com/open-component-model/service-model/api/utils"
 )
 
 type ServiceIdentity struct {
 	Component string
-	Service   string
+	Name      string
+}
+
+func (id ServiceIdentity) Validate() error {
+	return utils.CheckFlatName(id.Name, "service name")
 }
 
 func (id ServiceIdentity) IsRelative() bool {
@@ -16,18 +22,18 @@ func (id ServiceIdentity) IsRelative() bool {
 
 func (id ServiceIdentity) String() string {
 	if id.Component == "" {
-		return id.Service
+		return id.Name
 	}
-	return id.Service + "@" + id.Component
+	return id.Component + "/" + id.Name
 }
 
 func (id *ServiceIdentity) Parse(s string) {
-	idx := strings.Index(s, "@")
+	idx := strings.LastIndex(s, "/")
 	if idx >= 0 {
-		id.Service = s[:idx]
-		id.Component = s[idx+1:]
+		id.Component = s[:idx]
+		id.Name = s[idx+1:]
 	} else {
-		id.Service = s
+		id.Name = s
 		id.Component = ""
 	}
 }

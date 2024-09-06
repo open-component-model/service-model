@@ -1,0 +1,6 @@
+type: relativeServiceModelDescription/v1
+services:
+  - service: cluster
+    type: ServiceContract
+    shortName: vanilla kubernetes cluster implementation version 1.23.x
+    apiSpecificationType: none

@@ -1,0 +1,44 @@
+type: relativeServiceModelDescription/v1
+services:
+  - service: provider
+    type: ServiceProvider
+    shortName: Hana as a Service
+
+    dependencies:
+      - name: kaas
+        kind: orchestration
+        service: acme.org/gardener/service/provider
+        versionConstraints:
+          - v1.x.x
+
+    managedServices:
+      - service: acme.org/hana/apis/database
+        versions:
+          - v1.5.0
+        dependencyResolutions:
+          - name: runtime
+            resolution: managed
+            usage: shared
+
+    installers:
+      - service: installer
+
+  - service: installer
+    type: InstallationService
+    shortName: Installer for HaaS
+    installedService: provider
+    targetEnvironment:
+      type: KubernetesCluster
+
+    dependencies:
+      - name: kaas
+        kind: orchestration
+        service: acme.org/gardener/service/provider
+        versionConstraints:
+          - v1.x.x
+
+    installerType: Deplomat
+
+    installerResource:
+      resource:
+        name: installer

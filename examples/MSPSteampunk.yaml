@@ -1,0 +1,66 @@
+type: relativeServiceModelDescription/v1
+services:
+  - service: provider
+    type: ServiceProvider
+    shortName: ABAP as a Service
+
+    dependencies:
+      - name: haas
+        kind: orchestration
+        service: acme.org/hana/service/provider
+        versionConstraints:
+          - v1.x.x
+        serviceInstances:
+          - service: acme.org/hana/apis/database
+            dynamic: true
+
+      - name: kaas
+        kind: orchestration
+        service: acme.org/gardener/service/provider
+        versionConstraints:
+          - v1.x.x
+        serviceInstances:
+          - service: acme.org/gardener/apis/cluster
+            dynamic: true
+            static:
+              - name: runtime
+
+    managedServices:
+      - service: acme.org/steampunk/apis/abap
+        versions:
+          - v8.0.0
+        dependencyResolutions:
+          - name: runtime
+            resolution: managed
+            usage: shared
+          - name: database
+            resolution: managed
+            usage: exclusive
+
+    installers:
+      - service: installer
+
+  - service: installer
+    type: InstallationService
+    shortName: Installer for Steampunk
+    installedService: provider
+    targetEnvironment:
+      type: KubernetesCluster
+
+    dependencies:
+      - name: haas
+        kind: orchestration
+        service: acme.org/hana/service/provider
+        versionConstraints:
+          - v1.x.x
+      - name: kaas
+        kind: orchestration
+        service: acme.org/gardener/service/provider
+        versionConstraints:
+          - v1.x.x
+
+    installerType: Deplomat
+
+    installerResource:
+      resource:
+        name: installer
