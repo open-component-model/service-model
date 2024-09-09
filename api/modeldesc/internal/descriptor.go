@@ -24,11 +24,13 @@ type ServiceKindSpec interface {
 
 	ToCanonicalForm(c DescriptionContext) ServiceKindSpec
 	Validate(c DescriptionContext) error
+	GetReferences() References
 }
 
 type ServiceDescriptor struct {
 	CommonServiceSpec
-	Kind ServiceKindSpec
+	Kind   ServiceKindSpec
+	Origin Origin
 }
 
 type ServiceModelDescriptor struct {

@@ -43,17 +43,23 @@ func DependencyToCanonicalForm(in *metav1.Dependency, c DescriptionContext) *met
 	if c.MatchComponent(in.Service) {
 		out.Service.Component = c.GetName()
 	}
-	if /*e.Service.Component == c.GetName() && */ len(in.VersionConstraints) == 0 {
+	if len(in.VersionConstraints) == 0 {
 		out.VersionConstraints = []string{c.GetVersion()}
 	}
 
 	for i, e := range in.ServiceInstances {
-		if c.MatchComponent(e.Service) {
-			out.ServiceInstances[i].Service.Component = in.Service.Component
-		}
-		// cannot default version list, because of constraints
-		// and no fixed version) in dependency.
+		out.ServiceInstances[i] = *ServiceInstanceToCanonicalForm(&e, c)
 	}
+	return out
+}
+
+func ServiceInstanceToCanonicalForm(in *metav1.ServiceInstance, c DescriptionContext) *metav1.ServiceInstance {
+	out := in.Copy()
+	if c.MatchComponent(in.Service) {
+		out.Service.Component = c.GetName()
+	}
+	// cannot default version list, because of constraints
+	// and no fixed version) in dependency.
 	return out
 }
 

@@ -54,3 +54,7 @@ func (s *ServiceSpec) Validate(c internal.DescriptionContext) error {
 	}
 	return list.Result()
 }
+
+func (s *ServiceSpec) GetReferences() internal.References {
+	return internal.CommonServiceImplementationReferences(&s.CommonServiceImplementationSpec)
+}

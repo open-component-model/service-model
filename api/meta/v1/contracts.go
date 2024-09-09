@@ -7,9 +7,10 @@ import (
 type Contracts = utils.CopyableList[Contract]
 
 type Contract struct {
-	Service ServiceIdentity `json:"service"`
-	Version string          `json:"version,omitempty"`
-	Labels  Labels          `json:"labels,omitempty"`
+	Service     ServiceIdentity `json:"service"`
+	Version     string          `json:"version,omitempty"`
+	Description string          `json:"description,omitempty"`
+	Labels      Labels          `json:"labels,omitempty"`
 }
 
 func (c Contract) Copy() *Contract {

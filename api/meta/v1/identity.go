@@ -27,7 +27,7 @@ func (id ServiceIdentity) String() string {
 	return id.Component + "/" + id.Name
 }
 
-func (id *ServiceIdentity) Parse(s string) {
+func (id *ServiceIdentity) Parse(s string) error {
 	idx := strings.LastIndex(s, "/")
 	if idx >= 0 {
 		id.Component = s[:idx]
@@ -36,6 +36,7 @@ func (id *ServiceIdentity) Parse(s string) {
 		id.Name = s
 		id.Component = ""
 	}
+	return nil
 }
 
 func (id ServiceIdentity) MarshalJSON() ([]byte, error) {

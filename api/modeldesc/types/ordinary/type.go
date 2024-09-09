@@ -16,5 +16,9 @@ func (s *ServiceSpec) ToCanonicalForm(c internal.DescriptionContext) internal.Se
 }
 
 func (s *ServiceSpec) Validate(c internal.DescriptionContext) error {
-	return internal.ValidateCommonConsumerImplementation(&s.CommonConsumerServiceImplementationSpec, c)
+	return internal.ValidateCommonConsumerServiceImplementation(&s.CommonConsumerServiceImplementationSpec, c)
+}
+
+func (s *ServiceSpec) GetReferences() internal.References {
+	return internal.CommonConsumerServiceImplementationReferences(&s.CommonConsumerServiceImplementationSpec)
 }

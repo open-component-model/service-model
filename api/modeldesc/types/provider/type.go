@@ -31,10 +31,21 @@ func (s *ServiceSpec) Validate(c internal.DescriptionContext) error {
 	var list errors.ErrorList
 
 	list.Add(
-		internal.ValidateCommonConsumerImplementation(&s.CommonConsumerServiceImplementationSpec, c),
+		internal.ValidateCommonConsumerServiceImplementation(&s.CommonConsumerServiceImplementationSpec, c),
 	)
 	for i, e := range s.ManagedServices {
 		list.Addf(nil, internal.ValidateManagedService(&e, c), "managed service %d(%s)", i, e.Service.Name)
 	}
 	return list.Result()
+}
+
+func (s *ServiceSpec) GetReferences() internal.References {
+	var refs internal.References
+
+	refs.Add(internal.CommonConsumerServiceImplementationReferences(&s.CommonConsumerServiceImplementationSpec)...)
+	for _, e := range s.ManagedServices {
+		refs.Add(internal.ManagedServiceReferences(&e)...)
+	}
+	refs.Add(internal.CommonServiceImplementationReferences(&s.CommonServiceImplementationSpec)...)
+	return refs
 }
