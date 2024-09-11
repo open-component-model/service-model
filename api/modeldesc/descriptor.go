@@ -56,6 +56,10 @@ func CrossReferencesFor(desc *ServiceModelDescriptor, os ...Origin) *CrossRefere
 	return internal.ServiceModelReferences(desc, os...)
 }
 
+func AddServiceModelReferences(refs *CrossReferences, services []ServiceDescriptor, os ...Origin) {
+	internal.AddServiceModelReferences(refs, services, os...)
+}
+
 func NewNewOCMOrigin(comp, vers string, res v1.Identity) Origin {
 	return internal.NewOCMOrigin(common.NewNameVersion(comp, vers), res)
 }

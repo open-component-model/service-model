@@ -12,11 +12,15 @@ func addReferences(c *CrossReferences, holder *ServiceVersionIdentity, refs Refe
 
 func ServiceModelReferences(d *ServiceModelDescriptor, os ...Origin) *CrossReferences {
 	refs := NewCrossReferences()
-	for _, e := range d.Services {
+	AddServiceModelReferences(refs, d.Services, os...)
+	return refs
+}
+
+func AddServiceModelReferences(refs *CrossReferences, services []ServiceDescriptor, os ...Origin) {
+	for _, e := range services {
 		refs.AddService(NewServiceVersionIdentity(e.Service, e.Version), os...)
 		refs.AddRefs(ServiceReferences(&e))
 	}
-	return refs
 }
 
 func ServiceReferences(e *ServiceDescriptor) *CrossReferences {

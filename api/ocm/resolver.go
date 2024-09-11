@@ -6,6 +6,7 @@ import (
 	"github.com/mandelsoft/goutils/errors"
 	"github.com/mandelsoft/goutils/generics"
 	"github.com/mandelsoft/goutils/sliceutils"
+	"github.com/open-component-model/service-model/api/desc2model"
 	metav1 "github.com/open-component-model/service-model/api/meta/v1"
 	"github.com/open-component-model/service-model/api/model"
 	"github.com/open-component-model/service-model/api/modeldesc"
@@ -52,11 +53,11 @@ func (r *Resolver) LookupService(id metav1.ServiceVersionIdentity) (model.Servic
 	if s == nil {
 		return nil, errors.ErrNotFound(modeldesc.KIND_SERVICEVERSION, id.String())
 	}
-	return s, nil
+	return desc2model.ServiceDescriptorToModelService(s)
 }
 
 func (r *Resolver) addCV(id common.NameVersion) error {
-	desc, err := GetServiceModel(id.GetName(), id.GetVersion(), r.resolver)
+	desc, _, err := GetServiceModel(id.GetName(), id.GetVersion(), r.resolver)
 	if err != nil {
 		return err
 	}

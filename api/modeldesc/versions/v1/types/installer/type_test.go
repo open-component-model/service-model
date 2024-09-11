@@ -3,9 +3,9 @@ package installer_test
 import (
 	"reflect"
 
+	. "github.com/mandelsoft/goutils/testutils"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	. "ocm.software/ocm/api/utils/testutils"
 
 	"ocm.software/ocm/api/utils/runtime"
 

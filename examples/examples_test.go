@@ -28,6 +28,7 @@ func CheckRefs(comp, vers string, desc *modeldesc.ServiceModelDescriptor, exp st
 
 	data := Must(runtime.DefaultYAMLEncoding.Marshal(refs))
 	ExpectWithOffset(1, data).To(YAMLEqual(exp))
+	MustBeSuccessfulWithOffset(1, refs.CheckLocalConsistency())
 }
 
 const (
@@ -52,15 +53,30 @@ var _ = Describe("Examples", func() {
 			CheckRefs(COMP_MSP_GARDENER, VERS_MSP_GARDENER, desc, `
   services:
     acme.org/gardener/service/installer:
-      v1.0.0: {}
+      v1.0.0:
+        references:
+          description:
+          - acme.org/gardener/service/provider:v1.0.0
     acme.org/gardener/service/provider:
       v1.0.0:
         references:
-        - acme.org/gardener/service/installer
+          description:
+          - acme.org/gardener/apis/cluster:v1.22.0
+          - acme.org/gardener/apis/cluster:v1.23.0
+          installer:
+          - acme.org/gardener/service/installer:v1.0.0
   usages:
+    acme.org/gardener/apis/cluster:
+      v1.22.0:
+      - acme.org/gardener/service/provider:v1.0.0
+      v1.23.0:
+      - acme.org/gardener/service/provider:v1.0.0
     acme.org/gardener/service/installer:
       v1.0.0:
-      - acme.org/gardener/service/provider
+      - acme.org/gardener/service/provider:v1.0.0
+    acme.org/gardener/service/provider:
+      v1.0.0:
+      - acme.org/gardener/service/installer:v1.0.0
 `)
 		})
 
@@ -81,20 +97,33 @@ var _ = Describe("Examples", func() {
     acme.org/hana/service/installer:
       v1.0.0:
         references:
-        - acme.org/gardener/service/provider
+          dependency:
+          - acme.org/gardener/service/provider:v1.x.x
+          description:
+          - acme.org/hana/service/provider:v1.0.0
     acme.org/hana/service/provider:
       v1.0.0:
         references:
-        - acme.org/gardener/service/provider
-        - acme.org/hana/service/installer
+          dependency:
+          - acme.org/gardener/service/provider:v1.x.x
+          description:
+          - acme.org/hana/apis/database:v1.5.0
+          installer:
+          - acme.org/hana/service/installer:v1.0.0
   usages:
     acme.org/gardener/service/provider:
       v1.x.x:
-      - acme.org/hana/service/installer
-      - acme.org/hana/service/provider
+      - acme.org/hana/service/installer:v1.0.0
+      - acme.org/hana/service/provider:v1.0.0
+    acme.org/hana/apis/database:
+      v1.5.0:
+      - acme.org/hana/service/provider:v1.0.0
     acme.org/hana/service/installer:
       v1.0.0:
-      - acme.org/hana/service/provider
+      - acme.org/hana/service/provider:v1.0.0
+    acme.org/hana/service/provider:
+      v1.0.0:
+      - acme.org/hana/service/installer:v1.0.0
 `)
 		})
 
@@ -109,26 +138,47 @@ var _ = Describe("Examples", func() {
     acme.org/steampunk/service/installer:
       v1.0.0:
         references:
-        - acme.org/gardener/service/provider
-        - acme.org/hana/service/provider
+          dependency:
+          - acme.org/gardener/service/provider:v1.x.x
+          - acme.org/hana/service/provider:v1.x.x
+          description:
+          - acme.org/steampunk/service/provider:v1.0.0
     acme.org/steampunk/service/provider:
       v1.0.0:
         references:
-        - acme.org/gardener/service/provider
-        - acme.org/hana/service/provider
-        - acme.org/steampunk/service/installer
+          dependency:
+          - acme.org/gardener/service/provider:v1.x.x
+          - acme.org/hana/service/provider:v1.x.x
+          description:
+          - acme.org/gardener/apis/cluster
+          - acme.org/hana/apis/database
+          - acme.org/steampunk/apis/abap:v8.0.0
+          installer:
+          - acme.org/steampunk/service/installer:v1.0.0
   usages:
+    acme.org/gardener/apis/cluster:
+      "":
+      - acme.org/steampunk/service/provider:v1.0.0
     acme.org/gardener/service/provider:
       v1.x.x:
-      - acme.org/steampunk/service/installer
-      - acme.org/steampunk/service/provider
+      - acme.org/steampunk/service/installer:v1.0.0
+      - acme.org/steampunk/service/provider:v1.0.0
+    acme.org/hana/apis/database:
+      "":
+      - acme.org/steampunk/service/provider:v1.0.0
     acme.org/hana/service/provider:
       v1.x.x:
-      - acme.org/steampunk/service/installer
-      - acme.org/steampunk/service/provider
+      - acme.org/steampunk/service/installer:v1.0.0
+      - acme.org/steampunk/service/provider:v1.0.0
+    acme.org/steampunk/apis/abap:
+      v8.0.0:
+      - acme.org/steampunk/service/provider:v1.0.0
     acme.org/steampunk/service/installer:
       v1.0.0:
-      - acme.org/steampunk/service/provider
+      - acme.org/steampunk/service/provider:v1.0.0
+    acme.org/steampunk/service/provider:
+      v1.0.0:
+      - acme.org/steampunk/service/installer:v1.0.0
 `)
 		})
 

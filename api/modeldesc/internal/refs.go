@@ -2,6 +2,7 @@ package internal
 
 import (
 	"encoding/json"
+	"fmt"
 	"sort"
 
 	"github.com/mandelsoft/goutils/errors"
@@ -150,8 +151,19 @@ func (c *CrossReferences) getService(holder *ServiceVersionIdentity) *ServiceEnt
 	return e
 }
 
+func (c *CrossReferences) GetService(holder *ServiceVersionIdentity) *ServiceEntry {
+	versions := c.Services[holder.ServiceIdentity]
+	if versions == nil {
+		return nil
+	}
+	return versions[holder.Version]
+}
+
 func (c *CrossReferences) AddService(holder *ServiceVersionIdentity, os ...Origin) {
-	c.getService(holder).Origin = general.Optional(os...)
+	h := c.getService(holder)
+	if h.Origin == nil {
+		h.Origin = general.Optional(os...)
+	}
 }
 
 func (c *CrossReferences) AddRef(holder *ServiceVersionIdentity, ref *ServiceVersionIdentity, kind DepKind) {
@@ -182,10 +194,32 @@ func (c *CrossReferences) AddRefs(a *CrossReferences) {
 			s := NewServiceVersionIdentity(svc, vers)
 			c.AddService(s, e.Origin)
 			for k, l := range e.References {
-				for _, h := range l {
-					c.AddRef(&h, NewServiceVersionIdentity(svc, vers), k)
+				for _, r := range l {
+					c.AddRef(s, &r, k)
 				}
 			}
 		}
 	}
+}
+
+func (c *CrossReferences) CheckLocalConsistency() error {
+	var errlist errors.ErrorList
+
+	for u, versions := range c.Usages {
+		for v, holders := range versions {
+			used := NewServiceVersionIdentity(u, v)
+			usedentry := c.GetService(used)
+			for _, h := range holders {
+				entry := c.GetService(&h)
+				if entry != nil {
+					if u.Component == h.Component && v == h.Version {
+						if usedentry == nil {
+							errlist.Add(fmt.Errorf("missing service %s used by %s", used, h))
+						}
+					}
+				}
+			}
+		}
+	}
+	return errlist.Result()
 }
