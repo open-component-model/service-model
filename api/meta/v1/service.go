@@ -12,6 +12,10 @@ type CommonServiceSpec struct {
 	Labels      Labels          `json:"labels,omitempty"`
 }
 
+func (s *CommonServiceSpec) GetId() ServiceVersionIdentity {
+	return NewServiceVersionId(s.Service, s.Version)
+}
+
 func (s *CommonServiceSpec) Copy() *CommonServiceSpec {
 	c := *s
 	c.Labels = s.Labels.Copy()

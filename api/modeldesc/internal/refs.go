@@ -3,79 +3,55 @@ package internal
 import (
 	"encoding/json"
 	"sort"
-	"strings"
 
 	"github.com/mandelsoft/goutils/errors"
 	"github.com/mandelsoft/goutils/general"
+	"github.com/mandelsoft/goutils/generics"
 	"github.com/mandelsoft/goutils/sliceutils"
 	v1 "github.com/open-component-model/service-model/api/meta/v1"
 )
 
-type Reference struct {
-	v1.ServiceIdentity `json:",inline"`
-	Version            string `json:"version"`
+type DepKind string
+
+const (
+	DEP_DEPENDENCY  DepKind = "dependency"
+	DEP_DESCRIPTION DepKind = "description"
+	DEP_MEET        DepKind = "meet"
+	DEP_INSTALLER   DepKind = "installer"
+)
+
+type (
+	ServiceVersionIdentity = v1.ServiceVersionIdentity
+	ServiceIdentity        = v1.ServiceIdentity
+)
+
+func NewServiceVersionIdentity(s v1.ServiceIdentity, vers string) *ServiceVersionIdentity {
+	return generics.Pointer(v1.NewServiceVersionId(s, vers))
 }
 
-func NewReference(id v1.ServiceIdentity, vers string) *Reference {
-	return &Reference{id, vers}
-}
-
-func (r Reference) String() string {
-	if r.Version == "" {
-		return r.ServiceIdentity.String()
-	}
-	return r.ServiceIdentity.String() + ":" + r.Version
-}
-
-func (r *Reference) Parse(s string) error {
-	i := strings.LastIndex(s, ":")
-	if i > 0 {
-		r.ServiceIdentity.Parse(s[:i])
-		r.Version = s[i+1:]
-	} else {
-		r.ServiceIdentity.Parse(s)
-		r.Version = ""
-	}
-	return nil
-}
-
-func (r Reference) Equals(o Reference) bool {
-	return r == o
-}
+type ServiceVersionIdentities = v1.ServiceVersionIdentities
 
 ////////////////////////////////////////////////////////////////////////////////
 
-type References sliceutils.Slice[Reference]
-
-func (r *References) Add(refs ...Reference) {
-	*r = sliceutils.AppendUnique(*r, refs...)
+type Reference struct {
+	Kind DepKind
+	Id   ServiceVersionIdentity
 }
 
-func (r References) Len() int {
-	return len(r)
+func NewReference(id v1.ServiceIdentity, vers string, kind DepKind) *Reference {
+	return &Reference{kind, *NewServiceVersionIdentity(id, vers)}
 }
 
-func (r References) Less(i, j int) bool {
-	return ReferenceCompare(r[i], r[j]) < 0
-}
+type References = sliceutils.Slice[Reference]
 
-func (r References) Swap(i, j int) {
-	r[i], r[j] = r[j], r[i]
-}
-
-func ReferenceEquals(a, b Reference) bool {
-	return a.Equals(b)
-}
-
-func ReferenceCompare(a, b Reference) int {
-	c := strings.Compare(a.Component, b.Component)
-	if c == 0 {
-		c = strings.Compare(a.Name, b.Name)
+func AddVersionReferences(refs *References, id ServiceIdentity, kind DepKind, versions ...string) {
+	if len(versions) == 0 {
+		refs.Add(*NewReference(id, "", kind))
+	} else {
+		for _, e := range versions {
+			refs.Add(*NewReference(id, e, kind))
+		}
 	}
-	if c == 0 {
-		c = strings.Compare(a.Version, b.Version)
-	}
-	return c
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -140,11 +116,11 @@ func (r *marshallableMap[K, V, P]) UnmarshalJSON(bytes []byte) error {
 	return nil
 }
 
-type UsageMap = marshallableMap[v1.ServiceIdentity, map[string]References, *v1.ServiceIdentity]
+type UsageMap = marshallableMap[v1.ServiceIdentity, map[string]ServiceVersionIdentities, *v1.ServiceIdentity]
 
 type ServiceEntry struct {
-	References References `json:"references,omitempty"`
-	Origin     Origin     `json:"origin,omitempty"`
+	References map[DepKind]ServiceVersionIdentities `json:"references,omitempty"`
+	Origin     Origin                               `json:"origin,omitempty"`
 }
 
 type ServiceMap = marshallableMap[v1.ServiceIdentity, map[string]*ServiceEntry, *v1.ServiceIdentity]
@@ -160,7 +136,7 @@ func NewCrossReferences() *CrossReferences {
 	return &CrossReferences{ServiceMap{}, UsageMap{}}
 }
 
-func (c *CrossReferences) getService(holder *Reference) *ServiceEntry {
+func (c *CrossReferences) getService(holder *ServiceVersionIdentity) *ServiceEntry {
 	versions := c.Services[holder.ServiceIdentity]
 	if versions == nil {
 		versions = map[string]*ServiceEntry{}
@@ -168,26 +144,29 @@ func (c *CrossReferences) getService(holder *Reference) *ServiceEntry {
 	}
 	e := versions[holder.Version]
 	if e == nil {
-		e = &ServiceEntry{}
+		e = &ServiceEntry{References: map[DepKind]ServiceVersionIdentities{}}
 		versions[holder.Version] = e
 	}
 	return e
 }
 
-func (c *CrossReferences) AddService(holder *Reference, os ...Origin) {
+func (c *CrossReferences) AddService(holder *ServiceVersionIdentity, os ...Origin) {
 	c.getService(holder).Origin = general.Optional(os...)
 }
 
-func (c *CrossReferences) AddRef(holder *Reference, ref *Reference) {
+func (c *CrossReferences) AddRef(holder *ServiceVersionIdentity, ref *ServiceVersionIdentity, kind DepKind) {
 	// references
 	entry := c.getService(holder)
-	entry.References.Add(*ref)
-	sort.Sort(entry.References)
+
+	kindentry := entry.References[kind]
+	kindentry.Add(*ref)
+	sort.Sort(kindentry)
+	entry.References[kind] = kindentry
 
 	// usages
 	versions := c.Usages[ref.ServiceIdentity]
 	if versions == nil {
-		versions = map[string]References{}
+		versions = map[string]ServiceVersionIdentities{}
 		c.Usages[ref.ServiceIdentity] = versions
 	}
 
@@ -198,11 +177,14 @@ func (c *CrossReferences) AddRef(holder *Reference, ref *Reference) {
 }
 
 func (c *CrossReferences) AddRefs(a *CrossReferences) {
-	for svc, versions := range a.Usages {
+	for svc, versions := range a.Services {
 		for vers, e := range versions {
-			for _, h := range e {
-				c.AddService(&h, a.Services[h.ServiceIdentity][h.Version].Origin)
-				c.AddRef(&h, NewReference(svc, vers))
+			s := NewServiceVersionIdentity(svc, vers)
+			c.AddService(s, e.Origin)
+			for k, l := range e.References {
+				for _, h := range l {
+					c.AddRef(&h, NewServiceVersionIdentity(svc, vers), k)
+				}
 			}
 		}
 	}

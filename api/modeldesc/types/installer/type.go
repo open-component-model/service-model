@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/mandelsoft/goutils/errors"
+
 	metav1 "github.com/open-component-model/service-model/api/meta/v1"
 	"github.com/open-component-model/service-model/api/modeldesc/internal"
 )
@@ -16,7 +17,7 @@ type ServiceSpec struct {
 	TargetEnvironment metav1.TargetEnvironment `json:"targetEnvironment,omitempty"`
 	InstalledService  metav1.ServiceIdentity   `json:"installedService,omitempty"`
 	Versions          []string                 `json:"versions,omitempty"`
-	InstallerResource metav1.InstallerResource `json:"installerResource"`
+	InstallerResource metav1.ResourceReference `json:"installerResource"`
 	InstallerType     string                   `json:"installerType"`
 }
 
@@ -52,9 +53,14 @@ func (s *ServiceSpec) Validate(c internal.DescriptionContext) error {
 	if s.InstallerType == "" {
 		list.Add(fmt.Errorf("installerType must be set"))
 	}
+	list.Add(c.ValidateResource(s.InstallerResource.AsResourceRef()))
 	return list.Result()
 }
 
 func (s *ServiceSpec) GetReferences() internal.References {
-	return internal.CommonServiceImplementationReferences(&s.CommonServiceImplementationSpec)
+	var refs internal.References
+
+	refs.Add(internal.CommonServiceImplementationReferences(&s.CommonServiceImplementationSpec)...)
+	internal.AddVersionReferences(&refs, s.InstalledService, internal.DEP_DESCRIPTION, s.Versions...)
+	return refs
 }

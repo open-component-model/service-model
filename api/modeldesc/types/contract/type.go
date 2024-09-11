@@ -18,7 +18,7 @@ type ServiceSpec struct {
 	APISpecificationType string                    `json:"apiSpecificationType,omitempty"`
 	APISpecVersion       string                    `json:"apiSpecificationVersion,omitempty"`
 	Specification        *runtime.RawValue         `json:"specification,omitempty"`
-	Artifact             *metav1.InstallerResource `json:"artifact,omitempty"`
+	Artifact             *metav1.ResourceReference `json:"artifact,omitempty"`
 }
 
 func (s *ServiceSpec) ToCanonicalForm(c internal.DescriptionContext) internal.ServiceKindSpec {
@@ -36,6 +36,7 @@ func (s *ServiceSpec) Validate(c internal.DescriptionContext) error {
 	if s.APISpecificationType == "" {
 		list.Add(fmt.Errorf("apiSpecificationType must be set"))
 	}
+	list.Add(c.ValidateResource(s.Artifact.AsResourceRef()))
 	return list.Result()
 }
 

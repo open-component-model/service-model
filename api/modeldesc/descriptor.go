@@ -7,11 +7,24 @@ import (
 	"ocm.software/ocm/api/utils/runtime"
 )
 
-const KIND_SERVICE_TYPE = internal.KIND_SERVICE_TYPE
-const KIND_MODELVERSION = internal.KIND_MODELVERSION
+const (
+	KIND_SERVICEVERSION   = internal.KIND_SERVICEVERSION
+	KIND_SERVICE_TYPE     = internal.KIND_SERVICE_TYPE
+	KIND_MODELVERSION     = internal.KIND_MODELVERSION
+	KIND_DESCRIPTORFORMAT = internal.KIND_DESCRIPTORFORMAT
+)
 
-const REL_TYPE = internal.REL_TYPE
-const ABS_TYPE = internal.ABS_TYPE
+const (
+	DEP_DEPENDENCY  = internal.DEP_DEPENDENCY
+	DEP_DESCRIPTION = internal.DEP_DESCRIPTION
+	DEP_MEET        = internal.DEP_MEET
+	DEP_INSTALLER   = internal.DEP_INSTALLER
+)
+
+const (
+	REL_TYPE = internal.REL_TYPE
+	ABS_TYPE = internal.ABS_TYPE
+)
 
 type (
 	ServiceKindSpec        = internal.ServiceKindSpec
@@ -21,8 +34,8 @@ type (
 	DescriptionContext = internal.DescriptionContext
 
 	CrossReferences = internal.CrossReferences
-	Referene        = internal.Reference
-	Referenes       = internal.References
+	Reference       = internal.Reference
+	References      = internal.References
 
 	Origin = internal.Origin
 )

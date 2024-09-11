@@ -7,13 +7,17 @@ import (
 
 type TargetEnvironment = v1.StringMap
 
-type InstallerResource v1.ResourceReference
+type ResourceReference v1.ResourceReference
 
-func (r *InstallerResource) String() string {
+func (r *ResourceReference) AsResourceRef() *v1.ResourceReference {
+	return (*v1.ResourceReference)(r)
+}
+
+func (r *ResourceReference) String() string {
 	return (*v1.ResourceReference)(r).String()
 }
 
-func (r *InstallerResource) Copy() *InstallerResource {
+func (r *ResourceReference) Copy() *ResourceReference {
 	if r == nil {
 		return r
 	}

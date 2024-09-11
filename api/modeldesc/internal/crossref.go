@@ -4,16 +4,16 @@ import (
 	v1 "github.com/open-component-model/service-model/api/meta/v1"
 )
 
-func addReferences(c *CrossReferences, holder *Reference, refs References) {
+func addReferences(c *CrossReferences, holder *ServiceVersionIdentity, refs References) {
 	for _, r := range refs {
-		c.AddRef(holder, &r)
+		c.AddRef(holder, &r.Id, r.Kind)
 	}
 }
 
 func ServiceModelReferences(d *ServiceModelDescriptor, os ...Origin) *CrossReferences {
 	refs := NewCrossReferences()
 	for _, e := range d.Services {
-		refs.AddService(NewReference(e.Service, e.Version), os...)
+		refs.AddService(NewServiceVersionIdentity(e.Service, e.Version), os...)
 		refs.AddRefs(ServiceReferences(&e))
 	}
 	return refs
@@ -21,7 +21,7 @@ func ServiceModelReferences(d *ServiceModelDescriptor, os ...Origin) *CrossRefer
 
 func ServiceReferences(e *ServiceDescriptor) *CrossReferences {
 	refs := NewCrossReferences()
-	holder := NewReference(e.Service, e.Version)
+	holder := NewServiceVersionIdentity(e.Service, e.Version)
 
 	addReferences(refs, holder, CommonReferences(&e.CommonServiceSpec))
 	addReferences(refs, holder, e.Kind.GetReferences())
@@ -34,6 +34,7 @@ func CommonReferences(s *CommonServiceSpec) References {
 
 func CommonServiceImplementationReferences(s *v1.CommonServiceImplementationSpec) References {
 	var refs References
+
 	for _, e := range s.Dependencies {
 		refs.Add(DependencyReferences(&e)...)
 	}
@@ -55,36 +56,35 @@ func CommonConsumerServiceImplementationReferences(s *v1.CommonConsumerServiceIm
 func DependencyReferences(s *v1.Dependency) References {
 	var refs References
 
-	if len(s.VersionConstraints) == 0 {
-		refs.Add(*NewReference(s.Service, ""))
-	} else {
-		for _, e := range s.VersionConstraints {
-			refs.Add(*NewReference(s.Service, e))
-		}
+	AddVersionReferences(&refs, s.Service, DEP_DEPENDENCY, s.VersionConstraints...)
+	for _, e := range s.ServiceInstances {
+		refs.Add(ServiceInstanceReferences(&e)...)
 	}
 	return refs
 }
 
 func ContractReferences(s *v1.Contract) References {
 	var refs References
-	refs.Add(*NewReference(s.Service, s.Version))
+	refs.Add(*NewReference(s.Service, s.Version, DEP_MEET))
 	return refs
 }
 
 func ServiceInstanceReferences(s *v1.ServiceInstance) References {
 	var refs References
+	AddVersionReferences(&refs, s.Service, DEP_DESCRIPTION, s.Versions...)
 	return refs
 }
 
 func InstallerReferences(s *v1.Installer) References {
 	var refs References
 
-	refs.Add(*NewReference(s.Service, s.Version))
+	refs.Add(*NewReference(s.Service, s.Version, DEP_INSTALLER))
 	return refs
 }
 
 func ManagedServiceReferences(s *v1.ManagedService) References {
 	var refs References
+	AddVersionReferences(&refs, s.Service, DEP_DESCRIPTION, s.Versions...)
 	return refs
 }
 

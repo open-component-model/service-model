@@ -11,8 +11,10 @@ import (
 	"ocm.software/ocm/api/utils/runtime"
 )
 
+const KIND_SERVICEVERSION = "service version"
 const KIND_SERVICE_TYPE = "service type"
 const KIND_MODELVERSION = "service model version"
+const KIND_DESCRIPTORFORMAT = "descriptor format"
 
 const REL_TYPE = "relativeServiceModelDescription"
 const ABS_TYPE = "serviceModelDescription"
@@ -34,12 +36,20 @@ type ServiceDescriptor struct {
 }
 
 type ServiceModelDescriptor struct {
-	DocType  string `json:"type"`
+	DocType  runtime.VersionedObjectType `json:"type"`
 	Services []ServiceDescriptor
 }
 
 func (d *ServiceModelDescriptor) GetType() string {
-	return d.DocType
+	return d.DocType.GetType()
+}
+
+func (d *ServiceModelDescriptor) GetKind() string {
+	return d.DocType.GetKind()
+}
+
+func (d *ServiceModelDescriptor) GetVersion() string {
+	return d.DocType.GetVersion()
 }
 
 func (d *ServiceModelDescriptor) ToCanonicalForm(c DescriptionContext) *ServiceModelDescriptor {
@@ -47,7 +57,7 @@ func (d *ServiceModelDescriptor) ToCanonicalForm(c DescriptionContext) *ServiceM
 		return d
 	}
 	r := &ServiceModelDescriptor{
-		DocType:  runtime.TypeName(ABS_TYPE, runtime.GetVersion(d)),
+		DocType:  runtime.NewVersionedObjectType(ABS_TYPE, runtime.GetVersion(d)),
 		Services: utils.InitialSliceFor(d.Services),
 	}
 	for i, e := range d.Services {

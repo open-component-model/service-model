@@ -4,12 +4,19 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/Masterminds/semver/v3"
+	"github.com/mandelsoft/goutils/sliceutils"
 	"github.com/open-component-model/service-model/api/utils"
+	common "ocm.software/ocm/api/utils/misc"
 )
 
 type ServiceIdentity struct {
 	Component string
 	Name      string
+}
+
+func NewServiceId(component, name string) ServiceIdentity {
+	return ServiceIdentity{component, name}
 }
 
 func (id ServiceIdentity) Validate() error {
@@ -57,12 +64,29 @@ func (id *ServiceIdentity) UnmarshalJSON(data []byte) error {
 ////////////////////////////////////////////////////////////////////////////////
 
 type ServiceVersionIdentity struct {
-	ServiceIdentity
-	Version string
+	ServiceIdentity `json:",inline"`
+	Version         string `json:"version"`
+}
+
+func NewServiceVersionId(id ServiceIdentity, vers string) ServiceVersionIdentity {
+	return ServiceVersionIdentity{id, vers}
+}
+
+func (id ServiceVersionIdentity) ComponentVersionId() common.NameVersion {
+	return common.NewNameVersion(id.Component, id.Version)
 }
 
 func (id ServiceVersionIdentity) IsRelative() bool {
 	return id.Version == "" && id.ServiceIdentity.IsRelative()
+}
+
+func (id ServiceVersionIdentity) IsConstraint() bool {
+	_, err := semver.NewVersion(id.Version)
+	return err != nil
+}
+
+func (r ServiceVersionIdentity) Equals(o ServiceVersionIdentity) bool {
+	return r == o
 }
 
 func (id ServiceVersionIdentity) String() string {
@@ -73,7 +97,7 @@ func (id ServiceVersionIdentity) String() string {
 }
 
 func (id *ServiceVersionIdentity) Parse(s string) {
-	idx := strings.Index(s, ":")
+	idx := strings.LastIndex(s, ":")
 	if idx >= 0 {
 		id.ServiceIdentity.Parse(s[:idx])
 		id.Version = s[idx+1:]
@@ -96,4 +120,39 @@ func (id *ServiceVersionIdentity) UnmarshalJSON(data []byte) error {
 	}
 	id.Parse(s)
 	return nil
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+type ServiceVersionIdentities sliceutils.Slice[ServiceVersionIdentity]
+
+func (r *ServiceVersionIdentities) Add(refs ...ServiceVersionIdentity) {
+	*r = sliceutils.AppendUnique(*r, refs...)
+}
+
+func (r ServiceVersionIdentities) Len() int {
+	return len(r)
+}
+
+func (r ServiceVersionIdentities) Less(i, j int) bool {
+	return ServiceVersionIdentityCompare(r[i], r[j]) < 0
+}
+
+func (r ServiceVersionIdentities) Swap(i, j int) {
+	r[i], r[j] = r[j], r[i]
+}
+
+func ServiceVersionIdentityEquals(a, b ServiceVersionIdentity) bool {
+	return a.Equals(b)
+}
+
+func ServiceVersionIdentityCompare(a, b ServiceVersionIdentity) int {
+	c := strings.Compare(a.Component, b.Component)
+	if c == 0 {
+		c = strings.Compare(a.Name, b.Name)
+	}
+	if c == 0 {
+		c = strings.Compare(a.Version, b.Version)
+	}
+	return c
 }
