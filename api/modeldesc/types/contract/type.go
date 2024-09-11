@@ -5,6 +5,7 @@ import (
 
 	"github.com/mandelsoft/goutils/errors"
 	"github.com/mandelsoft/goutils/generics"
+	"github.com/open-component-model/service-model/api/crossref"
 	metav1 "github.com/open-component-model/service-model/api/meta/v1"
 	"github.com/open-component-model/service-model/api/modeldesc/internal"
 	"ocm.software/ocm/api/utils/runtime"
@@ -40,6 +41,6 @@ func (s *ServiceSpec) Validate(c internal.DescriptionContext) error {
 	return list.Result()
 }
 
-func (s *ServiceSpec) GetReferences() internal.References {
+func (s *ServiceSpec) GetReferences() crossref.References {
 	return nil
 }

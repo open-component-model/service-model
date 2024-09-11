@@ -1,4 +1,4 @@
-package internal
+package crossref
 
 import (
 	"encoding/json"
@@ -9,6 +9,7 @@ import (
 	"github.com/mandelsoft/goutils/general"
 	"github.com/mandelsoft/goutils/generics"
 	"github.com/mandelsoft/goutils/sliceutils"
+	"github.com/open-component-model/service-model/api/common"
 	v1 "github.com/open-component-model/service-model/api/meta/v1"
 )
 
@@ -121,7 +122,7 @@ type UsageMap = marshallableMap[v1.ServiceIdentity, map[string]ServiceVersionIde
 
 type ServiceEntry struct {
 	References map[DepKind]ServiceVersionIdentities `json:"references,omitempty"`
-	Origin     Origin                               `json:"origin,omitempty"`
+	Origin     common.Origin                        `json:"origin,omitempty"`
 }
 
 type ServiceMap = marshallableMap[v1.ServiceIdentity, map[string]*ServiceEntry, *v1.ServiceIdentity]
@@ -159,7 +160,7 @@ func (c *CrossReferences) GetService(holder *ServiceVersionIdentity) *ServiceEnt
 	return versions[holder.Version]
 }
 
-func (c *CrossReferences) AddService(holder *ServiceVersionIdentity, os ...Origin) {
+func (c *CrossReferences) AddService(holder *ServiceVersionIdentity, os ...common.Origin) {
 	h := c.getService(holder)
 	if h.Origin == nil {
 		h.Origin = general.Optional(os...)

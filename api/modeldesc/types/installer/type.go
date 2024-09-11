@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/mandelsoft/goutils/errors"
+	"github.com/open-component-model/service-model/api/crossref"
 
 	metav1 "github.com/open-component-model/service-model/api/meta/v1"
 	"github.com/open-component-model/service-model/api/modeldesc/internal"
@@ -57,10 +58,10 @@ func (s *ServiceSpec) Validate(c internal.DescriptionContext) error {
 	return list.Result()
 }
 
-func (s *ServiceSpec) GetReferences() internal.References {
-	var refs internal.References
+func (s *ServiceSpec) GetReferences() crossref.References {
+	var refs crossref.References
 
 	refs.Add(internal.CommonServiceImplementationReferences(&s.CommonServiceImplementationSpec)...)
-	internal.AddVersionReferences(&refs, s.InstalledService, internal.DEP_DESCRIPTION, s.Versions...)
+	crossref.AddVersionReferences(&refs, s.InstalledService, crossref.DEP_DESCRIPTION, s.Versions...)
 	return refs
 }

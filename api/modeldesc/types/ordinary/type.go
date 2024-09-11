@@ -1,6 +1,7 @@
 package ordinary
 
 import (
+	"github.com/open-component-model/service-model/api/crossref"
 	metav1 "github.com/open-component-model/service-model/api/meta/v1"
 	"github.com/open-component-model/service-model/api/modeldesc/internal"
 )
@@ -19,6 +20,6 @@ func (s *ServiceSpec) Validate(c internal.DescriptionContext) error {
 	return internal.ValidateCommonConsumerServiceImplementation(&s.CommonConsumerServiceImplementationSpec, c)
 }
 
-func (s *ServiceSpec) GetReferences() internal.References {
+func (s *ServiceSpec) GetReferences() crossref.References {
 	return internal.CommonConsumerServiceImplementationReferences(&s.CommonConsumerServiceImplementationSpec)
 }

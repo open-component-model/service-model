@@ -1,11 +1,11 @@
 package modeldesc
 
 import (
-	"github.com/open-component-model/service-model/api/modeldesc/internal"
+	"github.com/open-component-model/service-model/api/crossref"
 )
 
 func NewCrossReferences() *CrossReferences {
-	return internal.NewCrossReferences()
+	return crossref.NewCrossReferences()
 }
 
 func CheckLocalConsistency(desc *ServiceModelDescriptor, os ...Origin) (*CrossReferences, error) {

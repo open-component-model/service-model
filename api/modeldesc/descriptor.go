@@ -1,6 +1,8 @@
 package modeldesc
 
 import (
+	common2 "github.com/open-component-model/service-model/api/common"
+	"github.com/open-component-model/service-model/api/crossref"
 	"github.com/open-component-model/service-model/api/modeldesc/internal"
 	v1 "ocm.software/ocm/api/ocm/compdesc/meta/v1"
 	common "ocm.software/ocm/api/utils/misc"
@@ -15,10 +17,10 @@ const (
 )
 
 const (
-	DEP_DEPENDENCY  = internal.DEP_DEPENDENCY
-	DEP_DESCRIPTION = internal.DEP_DESCRIPTION
-	DEP_MEET        = internal.DEP_MEET
-	DEP_INSTALLER   = internal.DEP_INSTALLER
+	DEP_DEPENDENCY  = crossref.DEP_DEPENDENCY
+	DEP_DESCRIPTION = crossref.DEP_DESCRIPTION
+	DEP_MEET        = crossref.DEP_MEET
+	DEP_INSTALLER   = crossref.DEP_INSTALLER
 )
 
 const (
@@ -33,11 +35,11 @@ type (
 
 	DescriptionContext = internal.DescriptionContext
 
-	CrossReferences = internal.CrossReferences
-	Reference       = internal.Reference
-	References      = internal.References
+	CrossReferences = crossref.CrossReferences
+	Reference       = crossref.Reference
+	References      = crossref.References
 
-	Origin = internal.Origin
+	Origin = common2.Origin
 )
 
 func NewDescriptionContext(name, vers string, desc *ServiceModelDescriptor) DescriptionContext {
@@ -61,9 +63,9 @@ func AddServiceModelReferences(refs *CrossReferences, services []ServiceDescript
 }
 
 func NewNewOCMOrigin(comp, vers string, res v1.Identity) Origin {
-	return internal.NewOCMOrigin(common.NewNameVersion(comp, vers), res)
+	return common2.NewOCMOrigin(common.NewNameVersion(comp, vers), res)
 }
 
 func NewNewOCMOriginFor(nv common.VersionedElement, res v1.Identity) Origin {
-	return internal.NewOCMOrigin(nv, res)
+	return common2.NewOCMOrigin(nv, res)
 }

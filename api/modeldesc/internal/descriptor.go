@@ -5,6 +5,8 @@ import (
 
 	"github.com/mandelsoft/goutils/errors"
 	"github.com/mandelsoft/goutils/set"
+	common2 "github.com/open-component-model/service-model/api/common"
+	"github.com/open-component-model/service-model/api/crossref"
 	v1 "github.com/open-component-model/service-model/api/meta/v1"
 	"github.com/open-component-model/service-model/api/utils"
 	common "ocm.software/ocm/api/utils/misc"
@@ -26,13 +28,13 @@ type ServiceKindSpec interface {
 
 	ToCanonicalForm(c DescriptionContext) ServiceKindSpec
 	Validate(c DescriptionContext) error
-	GetReferences() References
+	GetReferences() crossref.References
 }
 
 type ServiceDescriptor struct {
 	CommonServiceSpec
 	Kind   ServiceKindSpec
-	Origin Origin
+	Origin common2.Origin
 }
 
 type ServiceModelDescriptor struct {
@@ -70,7 +72,7 @@ func (d *ServiceModelDescriptor) Validate(ve common.VersionedElement) error {
 	c := NewDescriptionContext(ve.GetName(), ve.GetVersion(), d)
 	list := errors.ErrListf("validation errors for component %s version %s", c.GetName(), c.GetVersion())
 	if runtime.GetKind(d) == ABS_TYPE {
-		return fmt.Errorf("cannot validate absolute descriptor")
+		// return fmt.Errorf("cannot validate absolute descriptor")
 	}
 	found := set.Set[string]{}
 	for i, e := range d.Services {
