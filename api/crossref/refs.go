@@ -56,7 +56,7 @@ func AddVersionReferences(refs *References, id ServiceIdentity, kind DepKind, ve
 	}
 }
 
-type UsageMap = jsonutils.MarshallableMap[v1.ServiceIdentity, map[string]ServiceVersionIdentities, *v1.ServiceIdentity]
+type UsageMap = jsonutils.MarshalableMap[v1.ServiceIdentity, map[string]ServiceVersionIdentities, *v1.ServiceIdentity]
 
 type ServiceEntry struct {
 	References map[DepKind]ServiceVersionIdentities `json:"references,omitempty"`
@@ -64,7 +64,7 @@ type ServiceEntry struct {
 	Descriptor interface{}                          `json:"-"`
 }
 
-type ServiceMap = jsonutils.MarshallableMap[v1.ServiceIdentity, map[string]*ServiceEntry, *v1.ServiceIdentity]
+type ServiceMap = jsonutils.MarshalableMap[v1.ServiceIdentity, map[string]*ServiceEntry, *v1.ServiceIdentity]
 
 ////////////////////////////////////////////////////////////////////////////////
 

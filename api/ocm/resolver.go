@@ -32,7 +32,7 @@ func NewResolver(r ocm.ComponentResolver) model.Resolver {
 	}
 }
 
-func (r *Resolver) LookupService(id metav1.ServiceVersionIdentity) (model.Service, error) {
+func (r *Resolver) LookupServiceVersion(model model.Model, id metav1.ServiceVersionIdentity) (model.Service, error) {
 	if id.IsConstraint() {
 		return nil, errors.ErrInvalid(modeldesc.KIND_SERVICEVERSION, id.String())
 	}
@@ -53,7 +53,7 @@ func (r *Resolver) LookupService(id metav1.ServiceVersionIdentity) (model.Servic
 	if s == nil {
 		return nil, errors.ErrNotFound(modeldesc.KIND_SERVICEVERSION, id.String())
 	}
-	return desc2model.ServiceDescriptorToModelService(s)
+	return desc2model.ServiceDescriptorToModelService(model, s)
 }
 
 func (r *Resolver) addCV(id common.NameVersion) error {

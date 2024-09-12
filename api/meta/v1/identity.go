@@ -178,23 +178,23 @@ func ServiceVersionIdentityCompare(a, b ServiceVersionIdentity) int {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-type ServiceVariantVersionIdentity struct {
+type ServiceVersionVariantIdentity struct {
 	ServiceVersionIdentity
 	Variant Variant
 }
 
-func NewServiceVariantVersionIdentity(si ServiceIdentity, vers string, variant ...Variant) *ServiceVariantVersionIdentity {
-	return &ServiceVariantVersionIdentity{NewServiceVersionId(si, vers), general.Optional(variant...)}
+func NewServiceVersionVariantIdentity(si ServiceIdentity, vers string, variant ...Variant) *ServiceVersionVariantIdentity {
+	return &ServiceVersionVariantIdentity{NewServiceVersionId(si, vers), general.Optional(variant...)}
 }
 
-func (id ServiceVariantVersionIdentity) String() string {
+func (id ServiceVersionVariantIdentity) String() string {
 	if len(id.Variant) == 0 {
 		return id.ServiceVersionIdentity.String()
 	}
 	return id.ServiceVersionIdentity.String() + id.Variant.String()
 }
 
-func (id *ServiceVariantVersionIdentity) Parse(s string) error {
+func (id *ServiceVersionVariantIdentity) Parse(s string) error {
 	if strings.HasSuffix(s, "}") {
 		i := strings.Index(s, "{")
 		if i < 0 {
@@ -210,19 +210,19 @@ func (id *ServiceVariantVersionIdentity) Parse(s string) error {
 	}
 }
 
-func (id ServiceVariantVersionIdentity) MarshalMapKey() (string, error) {
+func (id ServiceVersionVariantIdentity) MarshalMapKey() (string, error) {
 	return id.String(), nil
 }
 
-func (id *ServiceVariantVersionIdentity) UnmarshalMapKey(key string) error {
+func (id *ServiceVersionVariantIdentity) UnmarshalMapKey(key string) error {
 	return id.Parse(key)
 }
 
-func (id ServiceVariantVersionIdentity) MarshalJSON() ([]byte, error) {
+func (id ServiceVersionVariantIdentity) MarshalJSON() ([]byte, error) {
 	return json.Marshal(id.String())
 }
 
-func (id *ServiceVariantVersionIdentity) UnmarshalJSON(data []byte) error {
+func (id *ServiceVersionVariantIdentity) UnmarshalJSON(data []byte) error {
 	var s string
 
 	err := json.Unmarshal(data, &s)
