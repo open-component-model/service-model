@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/mandelsoft/goutils/errors"
+	"github.com/mandelsoft/goutils/general"
 	"github.com/mandelsoft/goutils/set"
 	common2 "github.com/open-component-model/service-model/api/common"
 	"github.com/open-component-model/service-model/api/crossref"
@@ -68,8 +69,8 @@ func (d *ServiceModelDescriptor) ToCanonicalForm(c DescriptionContext) *ServiceM
 	return r
 }
 
-func (d *ServiceModelDescriptor) Validate(ve common.VersionedElement) error {
-	c := NewDescriptionContext(ve.GetName(), ve.GetVersion(), d)
+func (d *ServiceModelDescriptor) Validate(ve common.VersionedElement, rv ...ResourceValidator) error {
+	c := NewDescriptionContext(ve.GetName(), ve.GetVersion(), d).WithResourceValidator(general.Optional(rv...))
 	list := errors.ErrListf("validation errors for component %s version %s", c.GetName(), c.GetVersion())
 	if runtime.GetKind(d) == ABS_TYPE {
 		// return fmt.Errorf("cannot validate absolute descriptor")

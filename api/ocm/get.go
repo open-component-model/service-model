@@ -2,9 +2,13 @@ package ocm
 
 import (
 	"github.com/mandelsoft/goutils/errors"
+	"github.com/mandelsoft/goutils/general"
 	"github.com/open-component-model/service-model/api/modeldesc"
 	"ocm.software/ocm/api/ocm"
+	ocmmeta "ocm.software/ocm/api/ocm/compdesc/meta/v1"
 	"ocm.software/ocm/api/ocm/ocmutils"
+	"ocm.software/ocm/api/ocm/resolvers"
+	"ocm.software/ocm/api/ocm/resourcerefs"
 	common "ocm.software/ocm/api/utils/misc"
 	"ocm.software/ocm/api/utils/runtime"
 )
@@ -27,7 +31,7 @@ func GetServiceModel(comp, vers string, resolver ocm.ComponentResolver) (*modeld
 	return nil, nil, errors.ErrNotFound(ocm.KIND_COMPONENTVERSION, common.NewNameVersion(comp, vers).String())
 }
 
-func GetServiceModelFromCV(cv ocm.ComponentVersionAccess) (*modeldesc.ServiceModelDescriptor, *modeldesc.CrossReferences, error) {
+func GetServiceModelFromCV(cv ocm.ComponentVersionAccess, resolver ...ocm.ComponentResolver) (*modeldesc.ServiceModelDescriptor, *modeldesc.CrossReferences, error) {
 	complete := &modeldesc.ServiceModelDescriptor{
 		DocType: runtime.NewVersionedObjectType(modeldesc.REL_TYPE, "v1"),
 	}
@@ -56,10 +60,24 @@ func GetServiceModelFromCV(cv ocm.ComponentVersionAccess) (*modeldesc.ServiceMod
 		}
 	}
 	complete = complete.ToCanonicalForm(modeldesc.NewDescriptionContext(cv.GetName(), cv.GetVersion(), complete))
-	err := complete.Validate(cv)
+	err := complete.Validate(cv, ResourceValidator(cv, resolver...))
 	if err != nil {
 		return complete, nil, err
 	}
 	refs, err := modeldesc.CheckLocalConsistency(complete)
 	return complete, refs, err
+}
+
+func ResourceValidator(cv ocm.ComponentVersionAccess, resolver ...ocm.ComponentResolver) modeldesc.ResourceValidator {
+	var cvr ocm.ComponentVersionResolver
+	if general.Optional(resolver...) != nil {
+		cvr = resolvers.ComponentVersionResolverForComponentResolver(general.Optional(resolver...))
+	}
+	return func(ref *ocmmeta.ResourceReference) error {
+		_, rcv, err := resourcerefs.ResolveResourceReference(cv, *ref, cvr)
+		if rcv != nil {
+			rcv.Close()
+		}
+		return err
+	}
 }

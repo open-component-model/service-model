@@ -1,13 +1,13 @@
 package crossref
 
 import (
-	"encoding/json"
 	"fmt"
 	"sort"
 
 	"github.com/mandelsoft/goutils/errors"
 	"github.com/mandelsoft/goutils/general"
 	"github.com/mandelsoft/goutils/generics"
+	"github.com/mandelsoft/goutils/jsonutils"
 	"github.com/mandelsoft/goutils/sliceutils"
 	"github.com/open-component-model/service-model/api/common"
 	v1 "github.com/open-component-model/service-model/api/meta/v1"
@@ -56,76 +56,15 @@ func AddVersionReferences(refs *References, id ServiceIdentity, kind DepKind, ve
 	}
 }
 
-////////////////////////////////////////////////////////////////////////////////
-
-type parsable interface {
-	Parse(string) error
-}
-
-type parseablePointer[P any] interface {
-	*P
-	parsable
-}
-
-type stringable interface {
-	comparable
-	String() string
-}
-
-type marshallableMap[K stringable, V any, P parseablePointer[K]] map[K]V
-
-var (
-	_ json.Marshaler   = marshallableMap[v1.ServiceIdentity, int, *v1.ServiceIdentity](nil)
-	_ json.Unmarshaler = (*marshallableMap[v1.ServiceIdentity, int, *v1.ServiceIdentity])(nil)
-)
-
-func (r marshallableMap[K, V, P]) MarshalJSON() ([]byte, error) {
-	m := map[string]json.RawMessage{}
-	for k, v := range r {
-		data, err := json.Marshal(v)
-		if err != nil {
-			return nil, errors.Wrapf(err, "service %q", k.String())
-		}
-		m[k.String()] = data
-	}
-	return json.Marshal(m)
-}
-
-func (r *marshallableMap[K, V, P]) UnmarshalJSON(bytes []byte) error {
-	var m map[string]json.RawMessage
-
-	err := json.Unmarshal(bytes, &m)
-	if err != nil {
-		return err
-	}
-
-	*r = marshallableMap[K, V, P]{}
-	for k, v := range m {
-		var s V
-		var e K
-
-		err := P(&e).Parse(k)
-		if err != nil {
-			return errors.Wrapf(err, "key %q", k)
-		}
-
-		err = json.Unmarshal(v, &s)
-		if err != nil {
-			return errors.Wrapf(err, "map entry %q", k)
-		}
-		(*r)[e] = s
-	}
-	return nil
-}
-
-type UsageMap = marshallableMap[v1.ServiceIdentity, map[string]ServiceVersionIdentities, *v1.ServiceIdentity]
+type UsageMap = jsonutils.MarshallableMap[v1.ServiceIdentity, map[string]ServiceVersionIdentities, *v1.ServiceIdentity]
 
 type ServiceEntry struct {
 	References map[DepKind]ServiceVersionIdentities `json:"references,omitempty"`
 	Origin     common.Origin                        `json:"origin,omitempty"`
+	Descriptor interface{}                          `json:"-"`
 }
 
-type ServiceMap = marshallableMap[v1.ServiceIdentity, map[string]*ServiceEntry, *v1.ServiceIdentity]
+type ServiceMap = jsonutils.MarshallableMap[v1.ServiceIdentity, map[string]*ServiceEntry, *v1.ServiceIdentity]
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -160,10 +99,13 @@ func (c *CrossReferences) GetService(holder *ServiceVersionIdentity) *ServiceEnt
 	return versions[holder.Version]
 }
 
-func (c *CrossReferences) AddService(holder *ServiceVersionIdentity, os ...common.Origin) {
+func (c *CrossReferences) AddService(holder *ServiceVersionIdentity, desc any, os ...common.Origin) {
 	h := c.getService(holder)
 	if h.Origin == nil {
 		h.Origin = general.Optional(os...)
+	}
+	if desc != nil {
+		h.Descriptor = desc
 	}
 }
 

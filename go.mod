@@ -6,7 +6,7 @@ replace github.com/spf13/cobra => github.com/open-component-model/cobra v0.0.0-2
 
 require (
 	github.com/Masterminds/semver/v3 v3.3.0
-	github.com/mandelsoft/goutils v0.0.0-20240910114310-fc2a9de4c494
+	github.com/mandelsoft/goutils v0.0.0-20240912090236-c74d7f0a84d1
 	github.com/onsi/ginkgo/v2 v2.20.2
 	github.com/onsi/gomega v1.34.2
 	ocm.software/ocm v0.14.1-0.20240911160552-6529b005018b

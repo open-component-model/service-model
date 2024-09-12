@@ -54,7 +54,7 @@ func (s *ServiceSpec) Validate(c internal.DescriptionContext) error {
 	if s.InstallerType == "" {
 		list.Add(fmt.Errorf("installerType must be set"))
 	}
-	list.Add(c.ValidateResource(s.InstallerResource.AsResourceRef()))
+	list.Add(errors.Wrapf(c.ValidateResource(s.InstallerResource.AsResourceRef()), "installer resource %s", s.InstallerResource.AsResourceRef()))
 	return list.Result()
 }
 

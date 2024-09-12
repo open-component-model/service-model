@@ -34,6 +34,7 @@ type (
 	ServiceModelDescriptor = internal.ServiceModelDescriptor
 
 	DescriptionContext = internal.DescriptionContext
+	ResourceValidator  = internal.ResourceValidator
 
 	CrossReferences = crossref.CrossReferences
 	Reference       = crossref.Reference

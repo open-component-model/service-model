@@ -20,7 +20,8 @@ func ServiceModelReferences(d *ServiceModelDescriptor, os ...common.Origin) *cro
 
 func AddServiceModelReferences(refs *crossref.CrossReferences, services []ServiceDescriptor, os ...common.Origin) {
 	for _, e := range services {
-		refs.AddService(crossref.NewServiceVersionIdentity(e.Service, e.Version), os...)
+		desc := e.Copy()
+		refs.AddService(crossref.NewServiceVersionIdentity(e.Service, e.Version), desc, os...)
 		refs.AddRefs(ServiceReferences(&e))
 	}
 }

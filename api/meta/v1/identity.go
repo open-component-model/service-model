@@ -46,6 +46,14 @@ func (id *ServiceIdentity) Parse(s string) error {
 	return nil
 }
 
+func (id ServiceIdentity) MarshalMapKey() (string, error) {
+	return id.String(), nil
+}
+
+func (id *ServiceIdentity) UnmarshalMapKey(key string) error {
+	return id.Parse(key)
+}
+
 func (id ServiceIdentity) MarshalJSON() ([]byte, error) {
 	return json.Marshal(id.String())
 }
