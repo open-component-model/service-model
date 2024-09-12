@@ -22,6 +22,10 @@ type ServiceSpec struct {
 	Artifact             *metav1.ResourceReference `json:"artifact,omitempty"`
 }
 
+func (s *ServiceSpec) GetVariant() metav1.Variant {
+	return nil
+}
+
 func (s *ServiceSpec) ToCanonicalForm(c internal.DescriptionContext) internal.ServiceKindSpec {
 	r := *s
 	if r.Specification != nil {

@@ -31,6 +31,10 @@ type CommonServiceImplementationSpec struct {
 	Contracts                 Contracts    `json:"contracts,omitempty"`
 }
 
+func (s *CommonServiceImplementationSpec) GetVariant() Variant {
+	return s.Variant
+}
+
 func (c CommonServiceImplementationSpec) Copy() *CommonServiceImplementationSpec {
 	c.Dependencies = c.Dependencies.Copy()
 	c.Variant = c.Variant.Copy()

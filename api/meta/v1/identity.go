@@ -183,8 +183,12 @@ type ServiceVersionVariantIdentity struct {
 	Variant Variant
 }
 
-func NewServiceVersionVariantIdentity(si ServiceIdentity, vers string, variant ...Variant) *ServiceVersionVariantIdentity {
-	return &ServiceVersionVariantIdentity{NewServiceVersionId(si, vers), general.Optional(variant...)}
+func NewServiceVersionVariantIdentity(si ServiceIdentity, vers string, variant ...Variant) ServiceVersionVariantIdentity {
+	return ServiceVersionVariantIdentity{NewServiceVersionId(si, vers), general.Optional(variant...)}
+}
+
+func NewServiceVersionVariantIdentityFor(svi ServiceVersionIdentity, variant ...Variant) ServiceVersionVariantIdentity {
+	return ServiceVersionVariantIdentity{svi, general.Optional(variant...)}
 }
 
 func (id ServiceVersionVariantIdentity) String() string {
@@ -192,6 +196,11 @@ func (id ServiceVersionVariantIdentity) String() string {
 		return id.ServiceVersionIdentity.String()
 	}
 	return id.ServiceVersionIdentity.String() + id.Variant.String()
+}
+
+func (id ServiceVersionVariantIdentity) Equals(o ServiceVersionVariantIdentity) bool {
+	return id.ServiceVersionIdentity.Equals(o.ServiceVersionIdentity) &&
+		id.Variant.Equals(o.Variant)
 }
 
 func (id *ServiceVersionVariantIdentity) Parse(s string) error {
@@ -231,4 +240,36 @@ func (id *ServiceVersionVariantIdentity) UnmarshalJSON(data []byte) error {
 	}
 	id.Parse(s)
 	return nil
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+type ServiceVersionVariantIdentities sliceutils.Slice[ServiceVersionVariantIdentity]
+
+func (r *ServiceVersionVariantIdentities) Add(refs ...ServiceVersionVariantIdentity) {
+	*r = sliceutils.AppendUniqueFunc(*r, ServiceVersionVariantIdentityEquals, refs...)
+}
+
+func (r ServiceVersionVariantIdentities) Len() int {
+	return len(r)
+}
+
+func (r ServiceVersionVariantIdentities) Less(i, j int) bool {
+	return ServiceVersionVariantIdentityCompare(r[i], r[j]) < 0
+}
+
+func (r ServiceVersionVariantIdentities) Swap(i, j int) {
+	r[i], r[j] = r[j], r[i]
+}
+
+func ServiceVersionVariantIdentityEquals(a, b ServiceVersionVariantIdentity) bool {
+	return a.Equals(b)
+}
+
+func ServiceVersionVariantIdentityCompare(a, b ServiceVersionVariantIdentity) int {
+	c := ServiceVersionIdentityCompare(a.ServiceVersionIdentity, b.ServiceVersionIdentity)
+	if c == 0 {
+		c = strings.Compare(a.Variant.String(), b.Variant.String())
+	}
+	return c
 }

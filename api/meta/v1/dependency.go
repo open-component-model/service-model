@@ -16,6 +16,7 @@ type Dependencies = utils.CopyableList[Dependency]
 type Dependency struct {
 	Name               string           `json:"name"`
 	Service            ServiceIdentity  `json:"service"`
+	Variant            Variant          `json:"variant,omitempty"`
 	Kind               string           `json:"kind"`
 	VersionConstraints []string         `json:"versionConstraints,omitempty"`
 	ServiceInstances   ServiceInstances `json:"serviceInstances,omitempty"`
@@ -27,5 +28,6 @@ type Dependency struct {
 func (d Dependency) Copy() *Dependency {
 	d.VersionConstraints = slices.Clone(d.VersionConstraints)
 	d.Labels = d.Labels.Copy()
+	d.Variant = d.Variant.Copy()
 	return &d
 }

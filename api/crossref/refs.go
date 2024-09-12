@@ -8,6 +8,7 @@ import (
 	"github.com/mandelsoft/goutils/general"
 	"github.com/mandelsoft/goutils/generics"
 	"github.com/mandelsoft/goutils/jsonutils"
+	"github.com/mandelsoft/goutils/maputils"
 	"github.com/mandelsoft/goutils/sliceutils"
 	"github.com/open-component-model/service-model/api/common"
 	v1 "github.com/open-component-model/service-model/api/meta/v1"
@@ -23,48 +24,58 @@ const (
 )
 
 type (
-	ServiceVersionIdentity = v1.ServiceVersionIdentity
-	ServiceIdentity        = v1.ServiceIdentity
+	ServiceVersionVariantIdentity = v1.ServiceVersionVariantIdentity
+	ServiceVersionIdentity        = v1.ServiceVersionIdentity
+	ServiceIdentity               = v1.ServiceIdentity
 )
 
 func NewServiceVersionIdentity(s v1.ServiceIdentity, vers string) *ServiceVersionIdentity {
 	return generics.Pointer(v1.NewServiceVersionId(s, vers))
 }
 
-type ServiceVersionIdentities = v1.ServiceVersionIdentities
+func NewServiceVersionVariantIdentity(s v1.ServiceIdentity, vers string, variant ...v1.Variant) ServiceVersionVariantIdentity {
+	return v1.NewServiceVersionVariantIdentity(s, vers, variant...)
+}
+
+func NewServiceVersionVariantIdentityFor(svi ServiceVersionIdentity, variant ...v1.Variant) ServiceVersionVariantIdentity {
+	return v1.NewServiceVersionVariantIdentityFor(svi, variant...)
+}
+
+type ServiceVersionVariantIdentities = v1.ServiceVersionVariantIdentities
 
 ////////////////////////////////////////////////////////////////////////////////
 
 type Reference struct {
 	Kind DepKind
-	Id   ServiceVersionIdentity
+	Id   ServiceVersionVariantIdentity
 }
 
-func NewReference(id v1.ServiceIdentity, vers string, kind DepKind) *Reference {
-	return &Reference{kind, *NewServiceVersionIdentity(id, vers)}
+func NewReference(id v1.ServiceIdentity, vers string, variant v1.Variant, kind DepKind) *Reference {
+	return &Reference{kind, NewServiceVersionVariantIdentity(id, vers, variant)}
 }
 
 type References = sliceutils.Slice[Reference]
 
-func AddVersionReferences(refs *References, id ServiceIdentity, kind DepKind, versions ...string) {
+func AddVersionReferences(refs *References, id ServiceIdentity, variant v1.Variant, kind DepKind, versions ...string) {
 	if len(versions) == 0 {
-		refs.Add(*NewReference(id, "", kind))
+		refs.Add(*NewReference(id, "", variant, kind))
 	} else {
 		for _, e := range versions {
-			refs.Add(*NewReference(id, e, kind))
+			refs.Add(*NewReference(id, e, variant, kind))
 		}
 	}
 }
 
-type UsageMap = jsonutils.MarshalableMap[v1.ServiceIdentity, map[string]ServiceVersionIdentities, *v1.ServiceIdentity]
+type UsageMap = jsonutils.MarshalableMap[v1.ServiceIdentity, map[string]map[string]ServiceVersionVariantIdentities, *v1.ServiceIdentity]
 
 type ServiceEntry struct {
-	References map[DepKind]ServiceVersionIdentities `json:"references,omitempty"`
-	Origin     common.Origin                        `json:"origin,omitempty"`
-	Descriptor interface{}                          `json:"-"`
+	References map[DepKind]ServiceVersionVariantIdentities `json:"references,omitempty"`
+	Origin     common.Origin                               `json:"origin,omitempty"`
+	Variant    v1.Variant                                  `json:"-"`
+	Descriptor interface{}                                 `json:"-"`
 }
 
-type ServiceMap = jsonutils.MarshalableMap[v1.ServiceIdentity, map[string]*ServiceEntry, *v1.ServiceIdentity]
+type ServiceMap = jsonutils.MarshalableMap[v1.ServiceIdentity, map[string]map[string]*ServiceEntry, *v1.ServiceIdentity]
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -77,41 +88,65 @@ func NewCrossReferences() *CrossReferences {
 	return &CrossReferences{ServiceMap{}, UsageMap{}}
 }
 
-func (c *CrossReferences) getService(holder *ServiceVersionIdentity) *ServiceEntry {
+func (c *CrossReferences) getService(holder *ServiceVersionIdentity, variant v1.Variant) *ServiceEntry {
 	versions := c.Services[holder.ServiceIdentity]
 	if versions == nil {
-		versions = map[string]*ServiceEntry{}
+		versions = map[string]map[string]*ServiceEntry{}
 		c.Services[holder.ServiceIdentity] = versions
 	}
-	e := versions[holder.Version]
+	variants := versions[holder.Version]
+	if variants == nil {
+		variants = map[string]*ServiceEntry{}
+		versions[holder.Version] = variants
+	}
+	e := variants[variant.String()]
 	if e == nil {
-		e = &ServiceEntry{References: map[DepKind]ServiceVersionIdentities{}}
-		versions[holder.Version] = e
+		e = &ServiceEntry{References: map[DepKind]ServiceVersionVariantIdentities{}}
+		variants[variant.String()] = e
 	}
 	return e
 }
 
-func (c *CrossReferences) GetService(holder *ServiceVersionIdentity) *ServiceEntry {
+func (c *CrossReferences) GetService(holder *ServiceVersionIdentity, variant v1.Variant) *ServiceEntry {
 	versions := c.Services[holder.ServiceIdentity]
 	if versions == nil {
 		return nil
 	}
-	return versions[holder.Version]
+	variants := versions[holder.Version]
+	if variants == nil {
+		return nil
+	}
+	return variants[variant.String()]
 }
 
-func (c *CrossReferences) AddService(holder *ServiceVersionIdentity, desc any, os ...common.Origin) {
-	h := c.getService(holder)
+func (c *CrossReferences) GetServiceVariants(holder *ServiceVersionIdentity) []*ServiceEntry {
+	versions := c.Services[holder.ServiceIdentity]
+	if versions == nil {
+		return nil
+	}
+	variants := versions[holder.Version]
+	if variants == nil {
+		return nil
+	}
+	return maputils.Values(variants)
+}
+
+func (c *CrossReferences) AddService(holder *ServiceVersionIdentity, variant v1.Variant, desc any, os ...common.Origin) {
+	h := c.getService(holder, variant)
 	if h.Origin == nil {
 		h.Origin = general.Optional(os...)
+	}
+	if h.Variant == nil {
+		h.Variant = variant.Copy()
 	}
 	if desc != nil {
 		h.Descriptor = desc
 	}
 }
 
-func (c *CrossReferences) AddRef(holder *ServiceVersionIdentity, ref *ServiceVersionIdentity, kind DepKind) {
+func (c *CrossReferences) AddRef(holder *ServiceVersionIdentity, variant v1.Variant, ref *ServiceVersionVariantIdentity, kind DepKind) {
 	// references
-	entry := c.getService(holder)
+	entry := c.getService(holder, variant)
 
 	kindentry := entry.References[kind]
 	kindentry.Add(*ref)
@@ -121,24 +156,32 @@ func (c *CrossReferences) AddRef(holder *ServiceVersionIdentity, ref *ServiceVer
 	// usages
 	versions := c.Usages[ref.ServiceIdentity]
 	if versions == nil {
-		versions = map[string]ServiceVersionIdentities{}
+		versions = map[string]map[string]ServiceVersionVariantIdentities{}
 		c.Usages[ref.ServiceIdentity] = versions
 	}
 
-	holders := versions[ref.Version]
-	holders.Add(*holder)
+	variants := versions[ref.Version]
+	if variants == nil {
+		variants = map[string]ServiceVersionVariantIdentities{}
+		versions[ref.Version] = variants
+	}
+
+	holders := variants[ref.Variant.String()]
+	holders.Add(NewServiceVersionVariantIdentityFor(*holder, variant))
 	sort.Sort(holders)
-	versions[ref.Version] = holders
+	variants[ref.Variant.String()] = holders
 }
 
 func (c *CrossReferences) AddRefs(a *CrossReferences) {
 	for svc, versions := range a.Services {
-		for vers, e := range versions {
+		for vers, variants := range versions {
 			s := NewServiceVersionIdentity(svc, vers)
-			c.AddService(s, e.Origin)
-			for k, l := range e.References {
-				for _, r := range l {
-					c.AddRef(s, &r, k)
+			for _, e := range variants {
+				c.AddService(s, e.Variant, e.Origin)
+				for k, l := range e.References {
+					for _, r := range l {
+						c.AddRef(s, e.Variant, &r, k)
+					}
 				}
 			}
 		}
@@ -149,15 +192,19 @@ func (c *CrossReferences) CheckLocalConsistency() error {
 	var errlist errors.ErrorList
 
 	for u, versions := range c.Usages {
-		for v, holders := range versions {
-			used := NewServiceVersionIdentity(u, v)
-			usedentry := c.GetService(used)
-			for _, h := range holders {
-				entry := c.GetService(&h)
-				if entry != nil {
-					if u.Component == h.Component && v == h.Version {
-						if usedentry == nil {
-							errlist.Add(fmt.Errorf("missing service %s used by %s", used, h))
+		for v, variants := range versions {
+			for vn, holders := range variants {
+				var variant v1.Variant
+				variant.Parse(vn)
+				used := NewServiceVersionIdentity(u, v)
+				usedentry := c.GetService(used, variant)
+				for _, h := range holders {
+					entry := c.GetService(&h.ServiceVersionIdentity, h.Variant)
+					if entry != nil {
+						if u.Component == h.Component && v == h.Version {
+							if usedentry == nil {
+								errlist.Add(fmt.Errorf("missing service %s used by %s", used, h))
+							}
 						}
 					}
 				}

@@ -36,6 +36,10 @@ func ValidateCommon(s *CommonServiceSpec, c DescriptionContext) error {
 func ValidateCommonServiceImplementation(s *v1.CommonServiceImplementationSpec, c DescriptionContext) error {
 	var list errors.ErrorList
 
+	list.Add(
+		s.Variant.Validate(),
+		s.InheritFrom.Validate(),
+	)
 	for i, e := range s.Dependencies {
 		list.Add(errors.Wrapf(ValidateDependency(&e, c), "dependency %d(%s)", i, e.Name))
 	}
@@ -63,6 +67,7 @@ func ValidateDependency(s *v1.Dependency, c DescriptionContext) error {
 		s.Service.Validate(),
 		utils.CheckValues(s.Kind, "dependency kind", v1.DEPKIND_IMPLEMENTATION, v1.DEPKIND_ORCHESTRATION),
 		s.Labels.Validate(),
+		s.Variant.Validate(),
 	)
 	for i, e := range s.VersionConstraints {
 		list.Add(utils.CheckVersionConstraint(e, "version conraint %d", i))
@@ -91,6 +96,7 @@ func ValidateServiceInstance(s *v1.ServiceInstance, c DescriptionContext) error 
 
 	list.Add(
 		s.Service.Validate(),
+		s.Variant.Validate(),
 	)
 	for i, e := range s.Static {
 		list.Addf(nil, utils.CheckFlatName(e.Name, "name"), "static instance %d", i)
@@ -120,6 +126,7 @@ func ValidateManagedService(s *v1.ManagedService, c DescriptionContext) error {
 
 	list.Add(
 		s.Service.Validate(),
+		s.Variant.Validate(),
 		s.Labels.Validate(),
 	)
 	for i, e := range s.DependencyResolutions {

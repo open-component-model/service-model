@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"maps"
 	"slices"
 
 	"github.com/open-component-model/service-model/api/utils"
@@ -19,6 +20,7 @@ type ManagedServices = utils.CopyableList[ManagedService]
 
 type ManagedService struct {
 	Service               ServiceIdentity       `json:"service"`
+	Variant               Variant               `json:"variant,omitempty"`
 	Versions              []string              `json:"versions,omitempty"`
 	Labels                Labels                `json:"labels,omitempty"`
 	DependencyResolutions DependencyResolutions `json:"dependencyResolutions,omitempty"`
@@ -27,6 +29,7 @@ type ManagedService struct {
 func (s ManagedService) Copy() *ManagedService {
 	s.Labels = s.Labels.Copy()
 	s.Versions = slices.Clone(s.Versions)
+	s.Variant = maps.Clone(s.Variant)
 	s.DependencyResolutions = s.DependencyResolutions.Copy()
 	return &s
 }

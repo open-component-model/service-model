@@ -23,6 +23,10 @@ type ServiceSpec struct {
 	Artifact             *metav1.ResourceReference `json:"artifact,omitempty"`
 }
 
+func (s *ServiceSpec) GetVariant() metav1.Variant {
+	return nil
+}
+
 type Converter struct{}
 
 func (c Converter) ConvertFrom(object modeldesc.ServiceKindSpec) (vpi.ServiceKindSpec, error) {

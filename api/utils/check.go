@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
@@ -48,4 +49,10 @@ func CheckVersion(v string, msg string, args ...interface{}) error {
 func CheckVersionConstraint(v string, msg string, args ...interface{}) error {
 	_, err := semver.NewConstraint(v)
 	return errors.Wrapf(err, "%s: %s", fmt.Sprintf(msg, args...), v)
+}
+
+var alnum = regexp.MustCompile("^[0-9a-zA-Z]*$")
+
+func IsAlphaNumeric(s string) bool {
+	return alnum.MatchString(s)
 }

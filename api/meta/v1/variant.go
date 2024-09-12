@@ -7,6 +7,7 @@ import (
 
 	"github.com/mandelsoft/goutils/jsonutils"
 	"github.com/mandelsoft/goutils/maputils"
+	"github.com/open-component-model/service-model/api/utils"
 )
 
 type Variant map[string]string
@@ -20,7 +21,34 @@ func (m Variant) Copy() Variant {
 	return maps.Clone(m)
 }
 
+func (m Variant) Equals(o Variant) bool {
+	if len(m) != len(o) {
+		return false
+	}
+	for k, v := range m {
+		if ov, ok := o[k]; !ok || ov != v {
+			return false
+		}
+	}
+	return true
+}
+
+func (m Variant) Validate() error {
+	for k, v := range m {
+		if !utils.IsAlphaNumeric(k) {
+			return fmt.Errorf("variant key %q is not alpha numeric", k)
+		}
+		if !utils.IsAlphaNumeric(v) {
+			return fmt.Errorf("variant value %q[%s] is not alpha numeric", v, k)
+		}
+	}
+	return nil
+}
+
 func (m Variant) String() string {
+	if len(m) == 0 {
+		return ""
+	}
 	key := "{"
 	for i, k := range maputils.OrderedKeys(m) {
 		if i > 0 {

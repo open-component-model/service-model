@@ -8,12 +8,12 @@ import (
 	v1 "github.com/open-component-model/service-model/api/meta/v1"
 )
 
-func CheckVariantId(id *v1.ServiceVersionVariantIdentity, res string) {
+func CheckVariantId(id v1.ServiceVersionVariantIdentity, res string) {
 	Expect(id.String()).To(Equal(res))
 
 	var u v1.ServiceVersionVariantIdentity
 	MustBeSuccessful(u.Parse(id.String()))
-	Expect(&u).To(DeepEqual(id))
+	Expect(u).To(DeepEqual(id))
 }
 
 var _ = Describe("Identity Test Environment", func() {
