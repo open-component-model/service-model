@@ -5,6 +5,6 @@ import (
 )
 
 type Resolver interface {
-	LookupServiceVersion(model Model, id v1.ServiceVersionIdentity) (Service, error)
-	ListVersions(id v1.ServiceIdentity) ([]string, error)
+	LookupServiceVersionVariant(model Model, id v1.ServiceVersionVariantIdentity) (Service, error)
+	ListVersions(id v1.ServiceIdentity, variant ...v1.Variant) ([]string, error)
 }

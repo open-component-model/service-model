@@ -191,6 +191,13 @@ func NewServiceVersionVariantIdentityFor(svi ServiceVersionIdentity, variant ...
 	return ServiceVersionVariantIdentity{svi, general.Optional(variant...)}
 }
 
+func (id ServiceVersionVariantIdentity) GetServiceVariantName() string {
+	if len(id.Variant) == 0 {
+		return id.ServiceIdentity.String()
+	}
+	return id.ServiceIdentity.String() + id.Variant.String()
+}
+
 func (id ServiceVersionVariantIdentity) String() string {
 	if len(id.Variant) == 0 {
 		return id.ServiceVersionIdentity.String()

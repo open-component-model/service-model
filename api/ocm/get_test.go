@@ -51,7 +51,7 @@ var _ = Describe("Test Environment", func() {
 			defer Close(repo, "repo")
 
 			resolver := resolvers.ComponentResolverForRepository(repo)
-			desc, refs := Must2(ocm.GetServiceModel(examples.COMP_MSP_GARDENER, examples.VERS_MSP_GARDENER, resolver))
+			desc, refs := Must2(ocm.GetServiceModel(examples.COMP_MSP_GARDENER, examples.VERS_MSP_GARDENER, resolvers.ComponentVersionResolverForComponentResolver(resolver)))
 			Expect(desc).NotTo(BeNil())
 			Expect(refs).NotTo(BeNil())
 		})
