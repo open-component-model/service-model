@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/mandelsoft/goutils/errors"
 	"github.com/mandelsoft/goutils/general"
 	"github.com/mandelsoft/goutils/sliceutils"
 	"github.com/open-component-model/service-model/api/utils"
@@ -73,6 +74,30 @@ func (id *ServiceIdentity) UnmarshalJSON(data []byte) error {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+type ServiceVariantIdentity struct {
+	ServiceIdentity
+	Variant Variant
+}
+
+func (id ServiceVariantIdentity) String() string {
+	return id.ServiceIdentity.String() + id.Variant.String()
+}
+
+func (id *ServiceVariantIdentity) Parse(s string) error {
+	var errlist errors.ErrorList
+	idx := strings.LastIndex(s, "{")
+	if idx >= 0 {
+		errlist.Add(id.ServiceIdentity.Parse(s[:idx]))
+		errlist.Add(id.Variant.Parse(s[idx:]))
+	} else {
+		errlist.Add(id.ServiceIdentity.Parse(s))
+		id.Variant = nil
+	}
+	return errlist.Result()
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 type ServiceVersionIdentity struct {
 	ServiceIdentity `json:",inline"`
 	Version         string `json:"version"`
@@ -107,15 +132,16 @@ func (id ServiceVersionIdentity) String() string {
 }
 
 func (id *ServiceVersionIdentity) Parse(s string) error {
+	var errlist errors.ErrorList
 	idx := strings.LastIndex(s, ":")
 	if idx >= 0 {
-		id.ServiceIdentity.Parse(s[:idx])
+		errlist.Add(id.ServiceIdentity.Parse(s[:idx]))
 		id.Version = s[idx+1:]
 	} else {
-		id.ServiceIdentity.Parse(s)
+		errlist.Add(id.ServiceIdentity.Parse(s))
 		id.Version = ""
 	}
-	return nil
+	return errlist.Result()
 }
 
 func (id ServiceVersionIdentity) MarshalMapKey() (string, error) {
@@ -191,6 +217,13 @@ func NewServiceVersionVariantIdentityFor(svi ServiceVersionIdentity, variant ...
 	return ServiceVersionVariantIdentity{svi, general.Optional(variant...)}
 }
 
+func (id ServiceVersionVariantIdentity) GetServiceVariantName() string {
+	if len(id.Variant) == 0 {
+		return id.ServiceIdentity.String()
+	}
+	return id.ServiceIdentity.String() + id.Variant.String()
+}
+
 func (id ServiceVersionVariantIdentity) String() string {
 	if len(id.Variant) == 0 {
 		return id.ServiceVersionIdentity.String()
@@ -204,19 +237,18 @@ func (id ServiceVersionVariantIdentity) Equals(o ServiceVersionVariantIdentity) 
 }
 
 func (id *ServiceVersionVariantIdentity) Parse(s string) error {
+	var errlist errors.ErrorList
 	if strings.HasSuffix(s, "}") {
 		i := strings.Index(s, "{")
 		if i < 0 {
 			return fmt.Errorf("invalid service varaint version %q", s)
 		}
-		err := id.ServiceVersionIdentity.Parse(s[:i])
-		if err != nil {
-			return err
-		}
-		return id.Variant.Parse(s[i:])
+		errlist.Add(id.ServiceVersionIdentity.Parse(s[:i]))
+		errlist.Add(id.Variant.Parse(s[i:]))
 	} else {
-		return id.ServiceVersionIdentity.Parse(s)
+		errlist.Add(id.ServiceVersionIdentity.Parse(s))
 	}
+	return errlist.Result()
 }
 
 func (id ServiceVersionVariantIdentity) MarshalMapKey() (string, error) {

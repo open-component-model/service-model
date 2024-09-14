@@ -7,31 +7,27 @@ import (
 	"ocm.software/ocm/api/ocm"
 	ocmmeta "ocm.software/ocm/api/ocm/compdesc/meta/v1"
 	"ocm.software/ocm/api/ocm/ocmutils"
-	"ocm.software/ocm/api/ocm/resolvers"
 	"ocm.software/ocm/api/ocm/resourcerefs"
-	common "ocm.software/ocm/api/utils/misc"
+	"ocm.software/ocm/api/utils/misc"
 	"ocm.software/ocm/api/utils/runtime"
 )
 
 const RESOURCE_TYPE = modeldesc.ABS_TYPE
 
-func GetServiceModel(comp, vers string, resolver ocm.ComponentResolver) (*modeldesc.ServiceModelDescriptor, *modeldesc.CrossReferences, error) {
-	for _, r := range resolver.LookupComponentProviders(comp) {
-		c, err := r.LookupComponent(comp)
-		if err != nil || c == nil {
-			continue
-		}
-		cv, err := c.LookupVersion(vers)
-		if err != nil || cv == nil {
-			continue
-		}
-		defer cv.Close()
-		return GetServiceModelFromCV(cv)
+func GetServiceModel(comp, vers string, resolver ocm.ComponentVersionResolver) (*modeldesc.ServiceModelDescriptor, *modeldesc.CrossReferences, error) {
+
+	cv, err := resolver.LookupComponentVersion(comp, vers)
+	if err != nil {
+		return nil, nil, err
 	}
-	return nil, nil, errors.ErrNotFound(ocm.KIND_COMPONENTVERSION, common.NewNameVersion(comp, vers).String())
+	if cv == nil {
+		return nil, nil, errors.ErrNotFound(ocm.KIND_COMPONENTVERSION, misc.NewNameVersion(comp, vers).String())
+	}
+	defer cv.Close()
+	return GetServiceModelFromCV(cv, resolver)
 }
 
-func GetServiceModelFromCV(cv ocm.ComponentVersionAccess, resolver ...ocm.ComponentResolver) (*modeldesc.ServiceModelDescriptor, *modeldesc.CrossReferences, error) {
+func GetServiceModelFromCV(cv ocm.ComponentVersionAccess, resolver ...ocm.ComponentVersionResolver) (*modeldesc.ServiceModelDescriptor, *modeldesc.CrossReferences, error) {
 	complete := &modeldesc.ServiceModelDescriptor{
 		DocType: runtime.NewVersionedObjectType(modeldesc.REL_TYPE, "v1"),
 	}
@@ -68,10 +64,10 @@ func GetServiceModelFromCV(cv ocm.ComponentVersionAccess, resolver ...ocm.Compon
 	return complete, refs, err
 }
 
-func ResourceValidator(cv ocm.ComponentVersionAccess, resolver ...ocm.ComponentResolver) modeldesc.ResourceValidator {
+func ResourceValidator(cv ocm.ComponentVersionAccess, resolver ...ocm.ComponentVersionResolver) modeldesc.ResourceValidator {
 	var cvr ocm.ComponentVersionResolver
 	if general.Optional(resolver...) != nil {
-		cvr = resolvers.ComponentVersionResolverForComponentResolver(general.Optional(resolver...))
+		cvr = general.Optional(resolver...)
 	}
 	return func(ref *ocmmeta.ResourceReference) error {
 		_, rcv, err := resourcerefs.ResolveResourceReference(cv, *ref, cvr)

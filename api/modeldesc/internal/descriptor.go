@@ -15,6 +15,7 @@ import (
 )
 
 const KIND_SERVICEVERSION = "service version"
+const KIND_SERVICEIDENTITY = "service identity"
 const KIND_SERVICE_TYPE = "service type"
 const KIND_MODELVERSION = "service model version"
 const KIND_DESCRIPTORFORMAT = "descriptor format"
@@ -37,6 +38,10 @@ type ServiceDescriptor struct {
 	CommonServiceSpec
 	Kind   ServiceKindSpec
 	Origin common2.Origin
+}
+
+func (d *ServiceDescriptor) GetId() v1.ServiceVersionVariantIdentity {
+	return v1.NewServiceVersionVariantIdentityFor(d.CommonServiceSpec.GetId(), d.Kind.GetVariant())
 }
 
 type ServiceModelDescriptor struct {

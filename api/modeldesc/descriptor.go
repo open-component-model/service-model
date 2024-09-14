@@ -3,6 +3,7 @@ package modeldesc
 import (
 	common2 "github.com/open-component-model/service-model/api/common"
 	"github.com/open-component-model/service-model/api/crossref"
+	metav1 "github.com/open-component-model/service-model/api/meta/v1"
 	"github.com/open-component-model/service-model/api/modeldesc/internal"
 	v1 "ocm.software/ocm/api/ocm/compdesc/meta/v1"
 	common "ocm.software/ocm/api/utils/misc"
@@ -11,6 +12,7 @@ import (
 
 const (
 	KIND_SERVICEVERSION   = internal.KIND_SERVICEVERSION
+	KIND_SERVICEIDENTITY  = internal.KIND_SERVICEIDENTITY
 	KIND_SERVICE_TYPE     = internal.KIND_SERVICE_TYPE
 	KIND_MODELVERSION     = internal.KIND_MODELVERSION
 	KIND_DESCRIPTORFORMAT = internal.KIND_DESCRIPTORFORMAT
@@ -69,4 +71,13 @@ func NewNewOCMOrigin(comp, vers string, res v1.Identity) Origin {
 
 func NewNewOCMOriginFor(nv common.VersionedElement, res v1.Identity) Origin {
 	return common2.NewOCMOrigin(nv, res)
+}
+
+type Resolver interface {
+	LookupServiceVersionVariant(id metav1.ServiceVersionVariantIdentity) (*ServiceDescriptor, error)
+}
+
+type VersionResolver interface {
+	Resolver
+	ListVersions(id metav1.ServiceIdentity, variant ...metav1.Variant) ([]string, error)
 }
