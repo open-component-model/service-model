@@ -15,9 +15,9 @@ type NormObject interface {
 
 type NormObjects = Objects[NormObject]
 
-var Normalize = processing.Transform(normalize)
+var Normalize = processing.Transform(NormalizeFunction)
 
-func normalize(s data.Iterable) data.Iterable {
+func NormalizeFunction(s data.Iterable) data.Iterable {
 	objs := ObjectSlice[NormObject](s)
 
 	uses := set.Set[common.NameVersion]{}

@@ -41,7 +41,7 @@ type Object struct {
 func NewObject(hist common.History, elem *modeldesc.ServiceDescriptor) *Object {
 	id := v1.NewServiceVersionVariantIdentity(elem.Service, elem.Version, elem.Kind.GetVariant())
 	return &Object{
-		History: nil,
+		History: hist,
 		Sort:    sliceutils.AsSlice(NewNameVersion(id.ServiceIdentity, id.Version, id.Variant)),
 		Id:      id,
 		Key:     NewNameVersion(id.ServiceIdentity, id.Version, id.Variant),

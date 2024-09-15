@@ -26,6 +26,10 @@ func (s *ServiceSpec) GetVariant() metav1.Variant {
 	return nil
 }
 
+func (s *ServiceSpec) GetDependencies() []metav1.Dependency {
+	return nil
+}
+
 func (s *ServiceSpec) ToCanonicalForm(c internal.DescriptionContext) internal.ServiceKindSpec {
 	r := *s
 	if r.Specification != nil {

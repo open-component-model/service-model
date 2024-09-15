@@ -9,6 +9,11 @@ import (
 const (
 	DEPKIND_IMPLEMENTATION = "implementation"
 	DEPKIND_ORCHESTRATION  = "orchestration"
+
+	// DEPKIND_INSTALLER is the dependency to an installer.
+	// It is maintained as explicit attribute and not part of regular
+	// dependencies, because they feature a restricted attribute set.
+	DEPKIND_INSTALLER = "installer"
 )
 
 type Dependencies = utils.CopyableList[Dependency]

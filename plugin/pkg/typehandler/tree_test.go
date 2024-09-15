@@ -70,6 +70,10 @@ func (k *Kind) GetVariant() metav1.Variant {
 	return nil
 }
 
+func (k *Kind) GetDependencies() []metav1.Dependency {
+	return nil
+}
+
 func (k *Kind) ToCanonicalForm(c modeldesc.DescriptionContext) modeldesc.ServiceKindSpec {
 	panic("implement me")
 }

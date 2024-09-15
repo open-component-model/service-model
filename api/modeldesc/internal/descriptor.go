@@ -28,6 +28,7 @@ type CommonServiceSpec = v1.CommonServiceSpec
 type ServiceKindSpec interface {
 	runtime.TypedObject
 	GetVariant() v1.Variant
+	GetDependencies() []v1.Dependency
 
 	ToCanonicalForm(c DescriptionContext) ServiceKindSpec
 	Validate(c DescriptionContext) error

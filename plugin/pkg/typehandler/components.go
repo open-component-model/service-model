@@ -25,7 +25,9 @@ type Components struct {
 	components []*comphdlr.Object
 }
 
-func ForComponents(octx cli.OCM, resolver ocm.ComponentResolver, oopts *output.Options, repobase ocm.Repository, session ocm.Session, compspecs []string, hopts ...Option) (cmdutils.TypeHandler, error) {
+var _ cmdutils.TypeHandler = (*Components)(nil)
+
+func ForComponents(octx cli.OCM, resolver ocm.ComponentResolver, oopts *output.Options, repobase ocm.Repository, session ocm.Session, compspecs []string, hopts ...Option) (*Components, error) {
 	components, err := comphdlr.Evaluate(octx, session, repobase, compspecs, oopts, MapToCompHandlerOptions(hopts...)...)
 	if err != nil {
 		return nil, err
@@ -38,6 +40,10 @@ func ForComponents(octx cli.OCM, resolver ocm.ComponentResolver, oopts *output.O
 		components: components,
 	}
 	return t, nil
+}
+
+func (t *Components) GetResolver() modeldesc.VersionResolver {
+	return t.resolver
 }
 
 func (t *Components) All() ([]output.Object, error) {

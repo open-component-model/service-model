@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"github.com/mandelsoft/goutils/sliceutils"
 	"ocm.software/ocm/api/utils/runtime"
 )
 
@@ -35,6 +36,10 @@ func (s *CommonServiceImplementationSpec) GetVariant() Variant {
 	return s.Variant
 }
 
+func (s *CommonServiceImplementationSpec) GetDependencies() []Dependency {
+	return s.Dependencies.Copy()
+}
+
 func (c CommonServiceImplementationSpec) Copy() *CommonServiceImplementationSpec {
 	c.Dependencies = c.Dependencies.Copy()
 	c.Variant = c.Variant.Copy()
@@ -47,6 +52,24 @@ type CommonConsumerServiceImplementationSpec struct {
 	CommonServiceImplementationSpec `json:",inline"`
 	External                        bool       `json:"external,omitempty"`
 	Installers                      Installers `json:"installers,omitempty"`
+}
+
+func (c CommonConsumerServiceImplementationSpec) GetDependencies() []Dependency {
+	deps := c.CommonServiceImplementationSpec.GetDependencies()
+	for _, e := range c.Installers {
+		deps = append(deps, Dependency{
+			Name:               "",
+			Service:            e.Service,
+			Variant:            e.Variant.Copy(),
+			Kind:               DEPKIND_INSTALLER,
+			VersionConstraints: sliceutils.AsSlice(e.Version),
+			ServiceInstances:   nil,
+			Optional:           false,
+			Description:        e.Description,
+			Labels:             e.Labels.Copy(),
+		})
+	}
+	return deps
 }
 
 func (c CommonConsumerServiceImplementationSpec) Copy() *CommonConsumerServiceImplementationSpec {
