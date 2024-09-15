@@ -19,10 +19,6 @@ const (
 	VERS_MSP_STEAMPUNK = "v1.0.0"
 )
 
-func TestData(dest ...string) env.Option {
+func Descriptors(dest ...string) env.Option {
 	return env.ProjectTestDataForCaller("descriptors", dest...)
-}
-
-func ModifiableTestData(dest ...string) env.Option {
-	return env.ModifiableProjectTestDataForCaller("descriptors", dest...)
 }

@@ -1,4 +1,5 @@
 /local
 /tmp
+/gen
 /.idea
 *.sw[pqo]

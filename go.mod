@@ -7,8 +7,12 @@ replace github.com/spf13/cobra => github.com/open-component-model/cobra v0.0.0-2
 require (
 	github.com/Masterminds/semver/v3 v3.3.0
 	github.com/mandelsoft/goutils v0.0.0-20240915132328-95975bffaef0
+	github.com/mandelsoft/logging v0.0.0-20240618075559-fdca28a87b0a
+	github.com/mandelsoft/vfs v0.4.4-0.20240915223828-8bc9369139c8
 	github.com/onsi/ginkgo/v2 v2.20.2
 	github.com/onsi/gomega v1.34.2
+	github.com/spf13/cobra v1.8.1
+	github.com/spf13/pflag v1.0.5
 	ocm.software/ocm v0.14.1-0.20240911160552-6529b005018b
 )
 
@@ -194,9 +198,7 @@ require (
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mandelsoft/filepath v0.0.0-20240223090642-3e2777258aa3 // indirect
-	github.com/mandelsoft/logging v0.0.0-20240618075559-fdca28a87b0a // indirect
 	github.com/mandelsoft/spiff v1.7.0-beta-5 // indirect
-	github.com/mandelsoft/vfs v0.4.3 // indirect
 	github.com/marstr/guid v1.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
@@ -257,8 +259,6 @@ require (
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
-	github.com/spf13/cobra v1.8.1 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.19.0 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.3.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect

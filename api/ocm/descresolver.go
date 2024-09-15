@@ -106,9 +106,9 @@ func (r *versionResolver) ListVersions(id metav1.ServiceIdentity, variant ...met
 
 	services := r.versions[id.Component]
 	if services == nil {
-		e := newComEntry()
-		r.versions[id.Component] = e
-		e.versions, e.err = resolvers.ListComponentVersions(id.Component, r.resolver)
+		services = newComEntry()
+		r.versions[id.Component] = services
+		services.versions, services.err = resolvers.ListComponentVersions(id.Component, r.resolver)
 	}
 
 	if services.err != nil {
@@ -117,9 +117,10 @@ func (r *versionResolver) ListVersions(id metav1.ServiceIdentity, variant ...met
 
 	versions := services.services[id.Name]
 	if versions == nil {
-		versions := []string{}
+		versions = []string{}
 		for _, v := range services.versions {
-			s, err := r.Resolver.LookupServiceVersionVariant(metav1.NewServiceVersionVariantIdentity(id, v, variant...))
+			cand := metav1.NewServiceVersionVariantIdentity(id, v, variant...)
+			s, err := r.Resolver.LookupServiceVersionVariant(cand)
 			if err != nil && !errors.IsErrNotFound(err) {
 				return nil, err
 			}

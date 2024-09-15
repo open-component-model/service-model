@@ -9,7 +9,7 @@ import (
 	v1 "github.com/open-component-model/service-model/api/meta/v1"
 	"github.com/open-component-model/service-model/api/modeldesc"
 	"github.com/open-component-model/service-model/api/utils"
-	"github.com/open-component-model/service-model/plugin/pkg/typehdlrutils"
+	"github.com/open-component-model/service-model/plugins/serviceplugin/pkg/typehdlrutils"
 	common "ocm.software/ocm/api/utils/misc"
 	"ocm.software/ocm/cmds/ocm/common/processing"
 	"ocm.software/ocm/cmds/ocm/common/tree"
