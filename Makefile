@@ -41,7 +41,7 @@ $(GEN)/$(NAME)/$(NAME): $(CMDSRCS) $(OCMSRCS)
 
 .PHONY: test
 test:
-	go test ./...
+	go test -count=1 ./...
 
 .PHONY: install
 install: $(GEN)/$(NAME)/$(NAME)

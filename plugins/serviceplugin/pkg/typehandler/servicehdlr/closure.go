@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/pflag"
 	"ocm.software/ocm/api/cli"
 	common "ocm.software/ocm/api/utils/misc"
-	"ocm.software/ocm/api/utils/out"
 	"ocm.software/ocm/cmds/ocm/commands/common/options/closureoption"
 	"ocm.software/ocm/cmds/ocm/common/options"
 	"ocm.software/ocm/cmds/ocm/common/output"
@@ -63,7 +62,7 @@ func traverse(hist common.History, o *Object, octx cli.Context, state *State) []
 		// TODO: provide error entry in list
 		nested, err := state.Resolver.LookupServiceVersionVariant(key)
 		if err != nil {
-			out.Errf(octx, "Warning: lookup nested service %q[%s]: %s\n", key, hist, err)
+			result = append(result, NewErrorObject(err, hist, d.Service, key.Version(), key.Variant()))
 			continue
 		}
 		obj := NewObject(hist.Copy(), nested)

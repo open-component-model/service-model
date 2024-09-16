@@ -154,7 +154,11 @@ func mapGetRegularOutput(e interface{}) interface{} {
 	}
 	r := obj.Element
 	if r == nil {
-		return sliceutils.AsSlice(obj.Id.Component(), obj.Id.Name(), obj.Id.Version(), obj.Id.Variant().String(), "", "")
+		err := ""
+		if obj.Error != nil {
+			err = obj.Error.Error()
+		}
+		return sliceutils.AsSlice(obj.Id.Component(), obj.Id.Name(), obj.Id.Version(), obj.Id.Variant().String(), "", err)
 	}
 	return sliceutils.AsSlice(r.Service.Component(), r.Service.Name(), r.Version, r.Kind.GetVariant().String(), r.Kind.GetType(), r.ShortName)
 }

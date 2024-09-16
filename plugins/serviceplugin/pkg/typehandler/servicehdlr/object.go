@@ -29,13 +29,12 @@ type Manifest struct {
 }
 
 type Object struct {
-	History   common.History
-	Sort      common.History
-	Id        identity.ServiceVersionVariantIdentity
-	Key       common.NameVersion
-	HasNested bool
-	Duplicate bool
+	History common.History
+	Sort    common.History
+	Id      identity.ServiceVersionVariantIdentity
+	Key     common.NameVersion
 
+	Error   error
 	Element *modeldesc.ServiceDescriptor
 	Node    *common.NameVersion
 }
@@ -62,6 +61,20 @@ func NewConstraintObject(hist common.History, sid identity.ServiceIdentity, cons
 		Sort:    sliceutils.AsSlice(nv),
 		Id:      id,
 		Key:     nv,
+		Element: nil,
+		Node:    &nv,
+	}
+}
+
+func NewErrorObject(err error, hist common.History, sid identity.ServiceIdentity, version string, variant ...identity.Variant) *Object {
+	id := identity.NewServiceVersionVariantIdentity(sid, version, variant...)
+	nv := NewNameVersion(sid, version, variant...)
+	return &Object{
+		History: hist,
+		Sort:    sliceutils.AsSlice(nv),
+		Id:      id,
+		Key:     nv,
+		Error:   err,
 		Element: nil,
 		Node:    &nv,
 	}
