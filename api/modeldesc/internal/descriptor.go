@@ -10,7 +10,7 @@ import (
 	"github.com/open-component-model/service-model/api/crossref"
 	"github.com/open-component-model/service-model/api/identity"
 	metav1 "github.com/open-component-model/service-model/api/meta/v1"
-	common "ocm.software/ocm/api/utils/misc"
+	"ocm.software/ocm/api/utils/misc"
 	"ocm.software/ocm/api/utils/runtime"
 )
 
@@ -29,10 +29,10 @@ type ServiceKindSpec interface {
 	runtime.TypedObject
 	GetVariant() identity.Variant
 
-	Copy() ServiceKindSpec
 	ToCanonicalForm(c DescriptionContext) ServiceKindSpec
 	Validate(c DescriptionContext) error
 	GetReferences() crossref.References
+	Copy() ServiceKindSpec
 }
 
 type ServiceDescriptor struct {
@@ -93,7 +93,7 @@ func (d *ServiceModelDescriptor) ToCanonicalForm(c DescriptionContext) *ServiceM
 	return r
 }
 
-func (d *ServiceModelDescriptor) Validate(ve common.VersionedElement, rv ...ResourceValidator) error {
+func (d *ServiceModelDescriptor) Validate(ve misc.VersionedElement, rv ...ResourceValidator) error {
 	c := NewDescriptionContext(ve.GetName(), ve.GetVersion(), d).WithResourceValidator(general.Optional(rv...))
 	list := errors.ErrListf("validation errors for component %s version %s", c.GetName(), c.GetVersion())
 	if runtime.GetKind(d) == ABS_TYPE {

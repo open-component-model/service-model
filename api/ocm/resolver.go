@@ -2,9 +2,9 @@ package ocm
 
 import (
 	"github.com/mandelsoft/goutils/errors"
-	"github.com/open-component-model/service-model/api/desc2model"
 	"github.com/open-component-model/service-model/api/identity"
 	"github.com/open-component-model/service-model/api/model"
+	"github.com/open-component-model/service-model/api/model/desc2model"
 	"github.com/open-component-model/service-model/api/modeldesc"
 	"ocm.software/ocm/api/ocm"
 )
@@ -21,7 +21,7 @@ func NewResolver(r ocm.ComponentResolver) model.Resolver {
 	}
 }
 
-func (r *resolver) LookupServiceVersionVariant(model model.Model, id identity.ServiceVersionVariantIdentity) (model.Service, error) {
+func (r *resolver) LookupServiceVersionVariant(model model.Model, id identity.ServiceVersionVariantIdentity) (model.ServiceVersionVariant, error) {
 	if id.IsConstraint() {
 		return nil, errors.ErrInvalid(modeldesc.KIND_SERVICEVERSION, id.String())
 	}

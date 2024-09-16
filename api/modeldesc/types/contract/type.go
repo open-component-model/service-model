@@ -2,7 +2,6 @@ package contract
 
 import (
 	"fmt"
-
 	"github.com/mandelsoft/goutils/errors"
 	"github.com/mandelsoft/goutils/generics"
 	"github.com/open-component-model/service-model/api/crossref"
@@ -21,6 +20,20 @@ type ServiceSpec struct {
 	APISpecVersion       string                    `json:"apiSpecificationVersion,omitempty"`
 	Specification        *runtime.RawValue         `json:"specification,omitempty"`
 	Artifact             *metav1.ResourceReference `json:"artifact,omitempty"`
+}
+
+func (s *ServiceSpec) Copy() internal.ServiceKindSpec {
+	var spec *runtime.RawValue
+	if s.Specification != nil {
+		spec = generics.Pointer(s.Specification.Copy())
+	}
+	return &ServiceSpec{
+		ObjectTypedObject:    runtime.NewTypedObject(s.GetType()),
+		APISpecificationType: s.APISpecificationType,
+		APISpecVersion:       s.APISpecVersion,
+		Specification:        spec,
+		Artifact:             s.Artifact.Copy(),
+	}
 }
 
 func (s *ServiceSpec) GetVariant() identity.Variant {

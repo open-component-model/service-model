@@ -11,6 +11,17 @@ import (
 
 type Origin map[string]map[string]string
 
+func (o Origin) Copy() Origin {
+	if o == nil {
+		return nil
+	}
+	result := Origin{}
+	for k, v := range o {
+		result[k] = maps.Clone(v)
+	}
+	return result
+}
+
 func (o Origin) String() string {
 	var s string
 	for i, k := range maputils.OrderedKeys(o) {

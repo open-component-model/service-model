@@ -70,6 +70,9 @@ func ResourceValidator(cv ocm.ComponentVersionAccess, resolver ...ocm.ComponentV
 		cvr = general.Optional(resolver...)
 	}
 	return func(ref *ocmmeta.ResourceReference) error {
+		if ref == nil {
+			return nil
+		}
 		_, rcv, err := resourcerefs.ResolveResourceReference(cv, *ref, cvr)
 		if rcv != nil {
 			rcv.Close()
