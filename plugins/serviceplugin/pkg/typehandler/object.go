@@ -1,16 +1,18 @@
 package typehandler
 
 import (
+	"encoding/json"
 	"fmt"
 	"slices"
+	"strings"
 
-	"github.com/mandelsoft/goutils/generics"
 	"github.com/mandelsoft/goutils/sliceutils"
 	v1 "github.com/open-component-model/service-model/api/meta/v1"
 	"github.com/open-component-model/service-model/api/modeldesc"
 	"github.com/open-component-model/service-model/api/utils"
 	"github.com/open-component-model/service-model/plugins/serviceplugin/pkg/typehdlrutils"
 	common "ocm.software/ocm/api/utils/misc"
+	"ocm.software/ocm/api/utils/runtime"
 	"ocm.software/ocm/cmds/ocm/common/processing"
 	"ocm.software/ocm/cmds/ocm/common/tree"
 )
@@ -22,8 +24,8 @@ func Elem(e interface{}) *modeldesc.ServiceDescriptor {
 type Objects = typehdlrutils.Objects[*Object]
 
 type Manifest struct {
-	History common.History               `json:"context"`
-	Element *modeldesc.ServiceDescriptor `json:"element"`
+	History common.History  `json:"context,omitempty"`
+	Element json.RawMessage `json:"element"`
 }
 
 type Object struct {
@@ -40,18 +42,33 @@ type Object struct {
 
 func NewObject(hist common.History, elem *modeldesc.ServiceDescriptor) *Object {
 	id := v1.NewServiceVersionVariantIdentity(elem.Service, elem.Version, elem.Kind.GetVariant())
+	nv := NewNameVersion(id.ServiceIdentity, id.Version, id.Variant)
 	return &Object{
 		History: hist,
-		Sort:    sliceutils.AsSlice(NewNameVersion(id.ServiceIdentity, id.Version, id.Variant)),
+		Sort:    sliceutils.AsSlice(nv),
 		Id:      id,
-		Key:     NewNameVersion(id.ServiceIdentity, id.Version, id.Variant),
+		Key:     nv,
 		Element: elem,
-		Node:    generics.Pointer(common.NewNameVersion(id.ServiceIdentity.String(), id.Version)),
+		Node:    &nv,
+	}
+}
+
+func NewConstraintObject(hist common.History, sid v1.ServiceIdentity, constraints []string, variant ...v1.Variant) *Object {
+	vers := strings.Join(constraints, ";")
+	id := v1.NewServiceVersionVariantIdentity(sid, vers, variant...)
+	nv := NewNameVersion(sid, vers, variant...)
+	return &Object{
+		History: hist,
+		Sort:    sliceutils.AsSlice(nv),
+		Id:      id,
+		Key:     nv,
+		Element: nil,
+		Node:    &nv,
 	}
 }
 
 func (o *Object) String() string {
-	return fmt.Sprintf("history: %s, id: %s", o.History, o.Id)
+	return fmt.Sprintf("history: %s, id: %s", o.History, o.Key)
 }
 
 func (o *Object) WithHistory(hist ...common.NameVersion) *Object {
@@ -68,9 +85,14 @@ var (
 )
 
 func (o *Object) AsManifest() interface{} {
+	desc := &modeldesc.ServiceModelDescriptor{
+		DocType:  runtime.NewVersionedObjectType(modeldesc.ABS_TYPE + "/v1"),
+		Services: sliceutils.AsSlice(*o.Element),
+	}
+	data, _ := modeldesc.Encode(desc, runtime.DefaultJSONEncoding)
 	return &Manifest{
 		History: o.History,
-		Element: o.Element,
+		Element: data,
 	}
 }
 

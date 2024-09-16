@@ -37,7 +37,7 @@ func ClosureExplode(opts *output.Options, e interface{}) []interface{} {
 }
 
 func traverse(hist common.History, o *Object, octx cli.Context, state *State) []interface{} {
-	key := NewNameVersion(o.Id.ServiceIdentity, o.Id.Version, o.Id.Variant)
+	key := o.Key
 	if err := hist.Add(modeldesc.KIND_SERVICEVERSION, key); err != nil {
 		return nil
 	}
@@ -46,10 +46,14 @@ func traverse(hist common.History, o *Object, octx cli.Context, state *State) []
 	found := set.Set[string]{}
 	for _, d := range deps {
 		if len(d.VersionConstraints) != 1 {
+			obj := NewConstraintObject(hist.Copy(), d.Service, d.VersionConstraints, d.Variant)
+			result = append(result, obj)
 			continue // cannot traverse unconcrete deps
 		}
 		key := v1.NewServiceVersionVariantIdentity(d.Service, d.VersionConstraints[0], d.Variant)
 		if key.IsConstraint() {
+			obj := NewConstraintObject(hist.Copy(), d.Service, d.VersionConstraints, d.Variant)
+			result = append(result, obj)
 			continue
 		}
 		if found.Has(key.String()) {

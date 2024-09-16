@@ -15,6 +15,7 @@ import (
 	"github.com/open-component-model/service-model/api/modeldesc/types/ordinary"
 	"github.com/open-component-model/service-model/api/modeldesc/types/provider"
 	"github.com/open-component-model/service-model/api/modeldesc/vpi"
+	mutils "github.com/open-component-model/service-model/api/utils"
 	"github.com/open-component-model/service-model/plugins/serviceplugin/pkg/typehandler"
 	"github.com/open-component-model/service-model/plugins/serviceplugin/pkg/typehdlrutils"
 	"ocm.software/ocm/api/cli"
@@ -99,7 +100,7 @@ func NewObject(sid metav1.ServiceIdentity, vers string, kind string, short strin
 
 func TableOutput(opts *output.Options, mapping processing.MappingFunction, wide ...string) *output.TableOutput {
 	return &output.TableOutput{
-		Headers: output.Fields("COMPONENT", "NAME", "VERSION", "KIND", "SHORTNAME", wide),
+		Headers: output.Fields("COMPONENT", "NAME", "VERSION", "VARIANT", "KIND", "SHORTNAME", wide),
 		Options: opts,
 		Chain:   processing.Append(typehandler.Sort, typehdlrutils.Normalize),
 		Mapping: mapping,
@@ -115,11 +116,15 @@ func getTree(opts *output.Options) output.Output {
 }
 
 func mapGetRegularOutput(e interface{}) interface{} {
-	r := typehandler.Elem(e)
-	if (e.(*typehandler.Object)).Node == nil {
-		return sliceutils.AsSlice("...", "", "", "", "")
+	obj := e.(*typehandler.Object)
+	if obj.Node == nil {
+		return sliceutils.AsSlice("...", "", "", "", "", "")
 	}
-	return sliceutils.AsSlice(r.Service.Component, r.Service.Name, r.Version, r.Kind.GetType(), r.ShortName)
+	r := obj.Element
+	if r == nil {
+		return sliceutils.AsSlice(obj.Id.Component, obj.Id.Name, obj.Id.Version, obj.Id.Variant.String(), "", "")
+	}
+	return sliceutils.AsSlice(r.Service.Component, r.Service.Name, r.Version, r.Kind.GetVariant().String(), r.Kind.GetType(), r.ShortName)
 }
 
 var _ = Describe("TreeTest Environment", func() {
@@ -142,11 +147,11 @@ var _ = Describe("TreeTest Environment", func() {
 
 		opts.Output = getRegular(opts)
 		MustBeSuccessful(utils.HandleOutput(opts.Output, hdlr))
-		Expect(buf.String()).To(StringEqualTrimmedWithContext(`
-COMPONENT   NAME      VERSION KIND                SHORTNAME
-acme.com/s1 installer v1.0.0  InstallationService gardener installer
-acme.com/s1 provider  v1.0.0  ServiceProvider     gardener
-`))
+		Expect(buf.String()).To(StringEqualTrimmedWithContext(mutils.Crop(`
+  COMPONENT   NAME      VERSION VARIANT KIND                SHORTNAME
+  acme.com/s1 installer v1.0.0          InstallationService gardener installer
+  acme.com/s1 provider  v1.0.0          ServiceProvider     gardener
+`, 2)))
 	})
 
 	It("simple usage tree", func() {
@@ -161,11 +166,11 @@ acme.com/s1 provider  v1.0.0  ServiceProvider     gardener
 
 		opts.Output = getTree(opts)
 		MustBeSuccessful(utils.HandleOutput(opts.Output, hdlr))
-		Expect(buf.String()).To(StringEqualTrimmedWithContext(`
-NESTING COMPONENT   NAME      VERSION KIND                SHORTNAME
-└─ ⊗    acme.com/s1 provider  v1.0.0  ServiceProvider     gardener
-   └─   acme.com/s1 installer v1.0.0  InstallationService gardener installer
-`))
+		Expect(buf.String()).To(StringEqualTrimmedWithContext(mutils.Crop(`
+  NESTING COMPONENT   NAME      VERSION VARIANT KIND                SHORTNAME
+  └─ ⊗    acme.com/s1 provider  v1.0.0          ServiceProvider     gardener
+     └─   acme.com/s1 installer v1.0.0          InstallationService gardener installer
+`, 2)))
 	})
 
 	It("complex usage tree", func() {
@@ -194,15 +199,15 @@ NESTING COMPONENT   NAME      VERSION KIND                SHORTNAME
 
 		opts.Output = getTree(opts)
 		MustBeSuccessful(utils.HandleOutput(opts.Output, hdlr))
-		Expect(buf.String()).To(StringEqualTrimmedWithContext(`
-NESTING     COMPONENT   NAME      VERSION KIND                SHORTNAME
-└─ ⊗        acme.com/s1 provider  v1.0.0  ServiceProvider     gardener
-   ├─ ⊗     acme.com/s1 installer v1.0.0  InstallationService gardener installer
-   │  └─ ⊗  acme.com/s2 service   v1.0.0  OrdinaryService     common
-   │     └─ ...                                               
-   └─ ⊗     acme.com/s2 service   v1.0.0  OrdinaryService     commom
-      └─    acme.com/s3 service   v1.0.0  ServiceContract     common contract
-`))
+		Expect(buf.String()).To(StringEqualTrimmedWithContext(mutils.Crop(`
+  NESTING     COMPONENT   NAME      VERSION VARIANT KIND                SHORTNAME
+  └─ ⊗        acme.com/s1 provider  v1.0.0          ServiceProvider     gardener
+     ├─ ⊗     acme.com/s1 installer v1.0.0          InstallationService gardener installer
+     │  └─ ⊗  acme.com/s2 service   v1.0.0          OrdinaryService     common
+     │     └─ ...                                                       
+     └─ ⊗     acme.com/s2 service   v1.0.0          OrdinaryService     commom
+        └─    acme.com/s3 service   v1.0.0          ServiceContract     common contract
+`, 2)))
 	})
 
 })

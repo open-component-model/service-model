@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 	metav1 "github.com/open-component-model/service-model/api/meta/v1"
 	ocmdesc "github.com/open-component-model/service-model/api/ocm"
+	mutils "github.com/open-component-model/service-model/api/utils"
 	. "github.com/open-component-model/service-model/examples"
 	"github.com/open-component-model/service-model/plugins/serviceplugin/pkg/typehandler"
 	"github.com/open-component-model/service-model/plugins/serviceplugin/pkg/typehdlrutils"
@@ -46,6 +47,15 @@ var _ = Describe("Handler Test Environment", func() {
 					env.BlobStringData(mime.MIME_YAML, MSPGardener)
 				})
 				env.Resource("installer", VERS_MSP_GARDENER, artifacttypes.PLAIN_TEXT, v1.LocalRelation, func() {
+					env.BlobStringData(mime.MIME_TEXT, "some installer description")
+				})
+			})
+
+			env.ComponentVersion(COMP_MSP_HANA, VERS_MSP_HANA, func() {
+				env.Resource("service", VERS_MSP_HANA, ocmdesc.RESOURCE_TYPE, v1.LocalRelation, func() {
+					env.BlobStringData(mime.MIME_YAML, MSPHana)
+				})
+				env.Resource("installer", VERS_MSP_HANA, artifacttypes.PLAIN_TEXT, v1.LocalRelation, func() {
 					env.BlobStringData(mime.MIME_TEXT, "some installer description")
 				})
 			})
@@ -128,6 +138,59 @@ var _ = Describe("Handler Test Environment", func() {
 			Expect(len(res)).To(Equal(2))
 		})
 
+		It("outputs yaml", func() {
+			sess := ocm.NewSession(nil)
+			defer Close(sess, "session")
+
+			h := Must(typehandler.ForComponents(env.OCM(), resolver, &output.Options{}, repo, sess, sliceutils.AsSlice(COMP_MSP_GARDENER)))
+
+			copt := closureoption.New("service")
+			copt.Closure = true
+
+			opts := &output.Options{
+				OptionSet: options.OptionSet{copt, typehandler.NewState(h.GetResolver())},
+				Context:   env.Context,
+			}
+
+			opts.Output = output.NewProcessingYAMLOutput(opts, nil)
+			MustBeSuccessful(utils.HandleOutput(opts.Output, h))
+			Expect(buf.String()).To(StringEqualTrimmedWithContext(mutils.Crop(`
+  ---
+  element:
+    services:
+    - installers:
+      - service: acme.org/gardener/service/installer
+        version: v1.0.0
+      managedServices:
+      - service: acme.org/gardener/apis/cluster
+        versions:
+        - v1.22.0
+        - v1.23.0
+      service: acme.org/gardener/service/provider
+      shortName: Gardener Kubernetes as a Service Management
+      type: ServiceProvider
+      version: v1.0.0
+    type: serviceModelDescription/v1
+  ---
+  element:
+    services:
+    - installedService: acme.org/gardener/service/provider
+      installerResource:
+        resource:
+          name: installer
+      installerType: Deplomat
+      service: acme.org/gardener/service/installer
+      shortName: Installer for Gardener
+      targetEnvironment:
+        type: KubernetesCluster
+      type: InstallationService
+      version: v1.0.0
+      versions:
+      - v1.0.0
+    type: serviceModelDescription/v1
+`, 2)))
+		})
+
 		It("resolves closure", func() {
 			sess := ocm.NewSession(nil)
 			defer Close(sess, "session")
@@ -144,11 +207,11 @@ var _ = Describe("Handler Test Environment", func() {
 
 			opts.Output = getCRegular(opts)
 			MustBeSuccessful(utils.HandleOutput(opts.Output, h))
-			Expect(buf.String()).To(StringEqualTrimmedWithContext(`
-REFERENCEPATH                             COMPONENT                 NAME      VERSION KIND                SHORTNAME
-                                          acme.org/gardener/service provider  v1.0.0  ServiceProvider     Gardener Kubernetes as a Service Management
-acme.org/gardener/service/provider:v1.0.0 acme.org/gardener/service installer v1.0.0  InstallationService Installer for Gardener
-`))
+			Expect(buf.String()).To(StringEqualTrimmedWithContext(mutils.Crop(`
+  REFERENCEPATH                             COMPONENT                 NAME      VERSION VARIANT KIND                SHORTNAME
+                                            acme.org/gardener/service provider  v1.0.0          ServiceProvider     Gardener Kubernetes as a Service Management
+  acme.org/gardener/service/provider:v1.0.0 acme.org/gardener/service installer v1.0.0          InstallationService Installer for Gardener
+`, 2)))
 		})
 
 		It("resolves closure tree", func() {
@@ -168,13 +231,64 @@ acme.org/gardener/service/provider:v1.0.0 acme.org/gardener/service installer v1
 
 			opts.Output = getCTree(opts)
 			MustBeSuccessful(utils.HandleOutput(opts.Output, h))
-			Expect(buf.String()).To(StringEqualTrimmedWithContext(`
-NESTING COMPONENT                 NAME      VERSION KIND                SHORTNAME
-└─ ⊗    acme.org/gardener/service provider  v1.0.0  ServiceProvider     Gardener Kubernetes as a Service Management
-   └─   acme.org/gardener/service installer v1.0.0  InstallationService Installer for Gardener
-`))
+			Expect(buf.String()).To(StringEqualTrimmedWithContext(mutils.Crop(`
+  NESTING COMPONENT                 NAME      VERSION VARIANT KIND                SHORTNAME
+  └─ ⊗    acme.org/gardener/service provider  v1.0.0          ServiceProvider     Gardener Kubernetes as a Service Management
+     └─   acme.org/gardener/service installer v1.0.0          InstallationService Installer for Gardener
+`, 2)))
 		})
 
+		It("resolves constrainted closure", func() {
+			sess := ocm.NewSession(nil)
+			defer Close(sess, "session")
+
+			h := Must(typehandler.ForComponents(env.OCM(), resolver, &output.Options{}, repo, sess, sliceutils.AsSlice(COMP_MSP_HANA)))
+
+			copt := closureoption.New("service")
+			copt.Closure = true
+
+			opts := &output.Options{
+				OptionSet: options.OptionSet{copt, typehandler.NewState(h.GetResolver())},
+				Context:   env.Context,
+			}
+
+			opts.Output = getCRegular(opts)
+			MustBeSuccessful(utils.HandleOutput(opts.Output, h))
+			Expect(buf.String()).To(StringEqualTrimmedWithContext(mutils.Crop(`
+  REFERENCEPATH                                                                 COMPONENT                 NAME      VERSION VARIANT KIND                SHORTNAME
+                                                                                acme.org/hana/service     provider  v1.0.0          ServiceProvider     Hana as a Service
+  acme.org/hana/service/provider:v1.0.0                                         acme.org/gardener/service provider  v1.x.x                              
+  acme.org/hana/service/provider:v1.0.0                                         acme.org/hana/service     installer v1.0.0          InstallationService Installer for HaaS
+  acme.org/hana/service/provider:v1.0.0->acme.org/hana/service/installer:v1.0.0 acme.org/gardener/service provider  v1.x.x                              
+
+`, 2)))
+		})
+
+		It("resolves constrainted closure tree", func() {
+			sess := ocm.NewSession(nil)
+			defer Close(sess, "session")
+
+			h := Must(typehandler.ForComponents(env.OCM(), resolver, &output.Options{}, repo, sess, sliceutils.AsSlice(COMP_MSP_HANA)))
+
+			copt := closureoption.New("service")
+			copt.Closure = true
+			copt.AddReferencePath = options.Never()
+
+			opts := &output.Options{
+				OptionSet: options.OptionSet{copt, typehandler.NewState(h.GetResolver())},
+				Context:   env.Context,
+			}
+
+			opts.Output = getCTree(opts)
+			MustBeSuccessful(utils.HandleOutput(opts.Output, h))
+			Expect(buf.String()).To(StringEqualTrimmedWithContext(mutils.Crop(`
+  NESTING  COMPONENT                 NAME      VERSION VARIANT KIND                SHORTNAME
+  └─ ⊗     acme.org/hana/service     provider  v1.0.0          ServiceProvider     Hana as a Service
+     ├─    acme.org/gardener/service provider  v1.x.x                              
+     └─ ⊗  acme.org/hana/service     installer v1.0.0          InstallationService Installer for HaaS
+        └─ acme.org/gardener/service provider  v1.x.x      
+`, 2)))
+		})
 	})
 })
 

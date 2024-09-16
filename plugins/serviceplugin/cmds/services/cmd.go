@@ -6,6 +6,7 @@ import (
 
 	"github.com/mandelsoft/goutils/general"
 	"github.com/mandelsoft/goutils/sliceutils"
+	ocmdesc "github.com/open-component-model/service-model/api/ocm"
 	"github.com/open-component-model/service-model/plugins/serviceplugin/pkg/typehandler"
 	"github.com/open-component-model/service-model/plugins/serviceplugin/pkg/typehdlrutils"
 	"github.com/spf13/pflag"
@@ -115,12 +116,14 @@ func (c *command) Run(cmd *cobra.Command, args []string) error {
 		h = typehandler.ForServices(resolver, typehandler.OptionsFor(c))
 	}
 
+	oopts.OptionSet = append(oopts.OptionSet, typehandler.NewState(ocmdesc.NewServiceResolver(resolvers.ComponentVersionResolverForComponentResolver(resolver))))
+
 	return utils.HandleArgs(oopts, h, mainargs...)
 }
 
 func TableOutput(opts *output.Options, mapping processing.MappingFunction, wide ...string) *output.TableOutput {
 	return &output.TableOutput{
-		Headers: output.Fields("COMPONENT", "NAME", "VERSION", "KIND", "SHORTNAME", wide),
+		Headers: output.Fields("COMPONENT", "NAME", "VERSION", "VARIANT", "KIND", "SHORTNAME", wide),
 		Options: opts,
 		Chain:   typehandler.Sort,
 		Mapping: mapping,
@@ -129,7 +132,7 @@ func TableOutput(opts *output.Options, mapping processing.MappingFunction, wide 
 
 var outputs = output.NewOutputs(getRegular, output.Outputs{
 	"tree": getTree,
-}).AddChainedManifestOutputs(output.ComposeChain(closureoption.OutputChainFunction(comphdlr.ClosureExplode, comphdlr.Sort)))
+}).AddChainedManifestOutputs(output.ComposeChain(closureoption.OutputChainFunction(typehandler.ClosureExplode, comphdlr.Sort.Transform(typehdlrutils.NormalizeFunction))))
 
 func getRegular(opts *output.Options) output.Output {
 	return NormalizedTableOutput(closureoption.TableOutput(TableOutput(opts, mapGetRegularOutput), typehandler.ClosureExplode), typehdlrutils.NormalizeFunction).New()
@@ -147,9 +150,13 @@ func NormalizedTableOutput(in *output.TableOutput, norm ...typehandler.Normalize
 }
 
 func mapGetRegularOutput(e interface{}) interface{} {
-	r := typehandler.Elem(e)
-	if (e.(*typehandler.Object)).Node == nil {
-		return sliceutils.AsSlice("...", "", "", "", "")
+	obj := e.(*typehandler.Object)
+	if obj.Node == nil {
+		return sliceutils.AsSlice("...", "", "", "", "", "")
 	}
-	return sliceutils.AsSlice(r.Service.Component, r.Service.Name, r.Version, r.Kind.GetType(), r.ShortName)
+	r := obj.Element
+	if r == nil {
+		return sliceutils.AsSlice(obj.Id.Component, obj.Id.Name, obj.Id.Version, obj.Id.Variant.String(), "", "")
+	}
+	return sliceutils.AsSlice(r.Service.Component, r.Service.Name, r.Version, r.Kind.GetVariant().String(), r.Kind.GetType(), r.ShortName)
 }

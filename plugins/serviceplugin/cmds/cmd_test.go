@@ -4,7 +4,6 @@ package cmds_test
 
 import (
 	"bytes"
-	"fmt"
 
 	. "github.com/mandelsoft/goutils/testutils"
 	"github.com/mandelsoft/vfs/pkg/osfs"
@@ -12,6 +11,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	ocmdesc "github.com/open-component-model/service-model/api/ocm"
+	mutils "github.com/open-component-model/service-model/api/utils"
 	. "github.com/open-component-model/service-model/examples"
 	v1 "ocm.software/ocm/api/ocm/compdesc/meta/v1"
 	"ocm.software/ocm/api/ocm/extensions/artifacttypes"
@@ -43,8 +43,6 @@ var _ = Describe("cliplugin", func() {
 			Expect(p).NotTo(BeNil())
 			Expect(p.Error()).To(Equal(""))
 
-			fmt.Printf("*** %s ***\n", basepath)
-
 			env.OCMCommonTransport(ARCH, accessio.FormatDirectory, func() {
 				env.ComponentVersion(COMP_MSP_GARDENER, VERS_MSP_GARDENER, func() {
 					env.Resource("service", VERS_MSP_GARDENER, ocmdesc.RESOURCE_TYPE, v1.LocalRelation, func() {
@@ -67,10 +65,79 @@ var _ = Describe("cliplugin", func() {
 
 			MustBeSuccessful(env.CatchOutput(&buf).Execute("get", "services", "--repo", basepath+"/"+ARCH, COMP_MSP_GARDENER+"/provider"))
 
-			Expect(buf.String()).To(StringEqualTrimmedWithContext(`
-COMPONENT                 NAME     VERSION KIND            SHORTNAME
-acme.org/gardener/service provider v1.0.0  ServiceProvider Gardener Kubernetes as a Service Management
-`))
+			Expect(buf.String()).To(StringEqualTrimmedWithContext(mutils.Crop(`
+  COMPONENT                 NAME     VERSION VARIANT KIND            SHORTNAME
+  acme.org/gardener/service provider v1.0.0          ServiceProvider Gardener Kubernetes as a Service Management
+
+`, 2)))
+		})
+
+		It("run plugin based ocm command with closure", func() {
+			var buf bytes.Buffer
+
+			MustBeSuccessful(env.CatchOutput(&buf).Execute("get", "services", "-r", "--repo", basepath+"/"+ARCH, COMP_MSP_GARDENER+"/provider"))
+
+			Expect(buf.String()).To(StringEqualTrimmedWithContext(mutils.Crop(`
+  REFERENCEPATH                             COMPONENT                 NAME      VERSION VARIANT KIND                SHORTNAME
+                                            acme.org/gardener/service provider  v1.0.0          ServiceProvider     Gardener Kubernetes as a Service Management
+  acme.org/gardener/service/provider:v1.0.0 acme.org/gardener/service installer v1.0.0          InstallationService Installer for Gardener
+`, 2)))
+		})
+
+		It("run plugin based ocm command with closure tree", func() {
+			var buf bytes.Buffer
+
+			MustBeSuccessful(env.CatchOutput(&buf).Execute("get", "services", "-otree", "-r", "--repo", basepath+"/"+ARCH, COMP_MSP_GARDENER+"/provider"))
+
+			Expect(buf.String()).To(StringEqualTrimmedWithContext(mutils.Crop(`
+  NESTING COMPONENT                 NAME      VERSION VARIANT KIND                SHORTNAME
+  └─ ⊗    acme.org/gardener/service provider  v1.0.0          ServiceProvider     Gardener Kubernetes as a Service Management
+     └─   acme.org/gardener/service installer v1.0.0          InstallationService Installer for Gardener
+`, 2)))
+		})
+
+		It("run plugin based ocm command with closure yaml", func() {
+			var buf bytes.Buffer
+
+			MustBeSuccessful(env.CatchOutput(&buf).Execute("get", "services", "-oyaml", "-r", "--repo", basepath+"/"+ARCH, COMP_MSP_GARDENER+"/provider"))
+
+			Expect(buf.String()).To(StringEqualTrimmedWithContext(mutils.Crop(`
+  ---
+  element:
+    services:
+    - installers:
+      - service: acme.org/gardener/service/installer
+        version: v1.0.0
+      managedServices:
+      - service: acme.org/gardener/apis/cluster
+        versions:
+        - v1.22.0
+        - v1.23.0
+      service: acme.org/gardener/service/provider
+      shortName: Gardener Kubernetes as a Service Management
+      type: ServiceProvider
+      version: v1.0.0
+    type: serviceModelDescription/v1
+  ---
+  context:
+  - acme.org/gardener/service/provider:v1.0.0
+  element:
+    services:
+    - installedService: acme.org/gardener/service/provider
+      installerResource:
+        resource:
+          name: installer
+      installerType: Deplomat
+      service: acme.org/gardener/service/installer
+      shortName: Installer for Gardener
+      targetEnvironment:
+        type: KubernetesCluster
+      type: InstallationService
+      version: v1.0.0
+      versions:
+      - v1.0.0
+    type: serviceModelDescription/v1
+`, 2)))
 		})
 	})
 })
