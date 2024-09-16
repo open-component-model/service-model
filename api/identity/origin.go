@@ -1,10 +1,10 @@
-package common
+package identity
 
 import (
 	"reflect"
 
 	"github.com/mandelsoft/goutils/maputils"
-	v1 "ocm.software/ocm/api/ocm/compdesc/meta/v1"
+	ocmmeta "ocm.software/ocm/api/ocm/compdesc/meta/v1"
 	"ocm.software/ocm/api/utils/misc"
 )
 
@@ -40,7 +40,7 @@ const (
 	ORIG_VALUE = "value"
 )
 
-func NewOCMOrigin(nv misc.VersionedElement, id v1.Identity) Origin {
+func NewOCMOrigin(nv misc.VersionedElement, id ocmmeta.Identity) Origin {
 	return Origin{
 		ORIG_COMP:     {ORIG_VALUE: nv.GetName()},
 		ORIG_VERS:     {ORIG_VALUE: nv.GetVersion()},

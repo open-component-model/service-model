@@ -1,4 +1,4 @@
-package typehandler
+package servicehdlr
 
 import (
 	"github.com/Masterminds/semver/v3"

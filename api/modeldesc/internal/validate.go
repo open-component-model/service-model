@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/mandelsoft/goutils/errors"
-	v1 "github.com/open-component-model/service-model/api/meta/v1"
+	metav1 "github.com/open-component-model/service-model/api/meta/v1"
 	"github.com/open-component-model/service-model/api/utils"
 )
 
@@ -28,12 +28,12 @@ func ValidateCommon(s *CommonServiceSpec, c DescriptionContext) error {
 		list.Add(utils.CheckVersion(s.Version, "service version"))
 	}
 	if !c.MatchComponent(s.Service) {
-		list.Add(fmt.Errorf("non-local service definitions are not possible (%s)", s.Service.Component))
+		list.Add(fmt.Errorf("non-local service definitions are not possible (%s)", s.Service.Component()))
 	}
 	return list.Result()
 }
 
-func ValidateCommonServiceImplementation(s *v1.CommonServiceImplementationSpec, c DescriptionContext) error {
+func ValidateCommonServiceImplementation(s *metav1.CommonServiceImplementationSpec, c DescriptionContext) error {
 	var list errors.ErrorList
 
 	list.Add(
@@ -49,7 +49,7 @@ func ValidateCommonServiceImplementation(s *v1.CommonServiceImplementationSpec, 
 	return list.Result()
 }
 
-func ValidateCommonConsumerServiceImplementation(s *v1.CommonConsumerServiceImplementationSpec, c DescriptionContext) error {
+func ValidateCommonConsumerServiceImplementation(s *metav1.CommonConsumerServiceImplementationSpec, c DescriptionContext) error {
 	var list errors.ErrorList
 
 	list.Add(ValidateCommonServiceImplementation(&s.CommonServiceImplementationSpec, c))
@@ -59,13 +59,13 @@ func ValidateCommonConsumerServiceImplementation(s *v1.CommonConsumerServiceImpl
 	return list.Result()
 }
 
-func ValidateDependency(s *v1.Dependency, c DescriptionContext) error {
+func ValidateDependency(s *metav1.Dependency, c DescriptionContext) error {
 	var list errors.ErrorList
 
 	list.Add(
 		utils.CheckFlatName(s.Name, "dependency name"),
 		s.Service.Validate(),
-		utils.CheckValues(s.Kind, "dependency kind", v1.DEPKIND_IMPLEMENTATION, v1.DEPKIND_ORCHESTRATION),
+		utils.CheckValues(s.Kind, "dependency kind", metav1.DEPKIND_IMPLEMENTATION, metav1.DEPKIND_ORCHESTRATION),
 		s.Labels.Validate(),
 		s.Variant.Validate(),
 	)
@@ -78,7 +78,7 @@ func ValidateDependency(s *v1.Dependency, c DescriptionContext) error {
 	return list.Result()
 }
 
-func ValidateContract(s *v1.Contract, c DescriptionContext) error {
+func ValidateContract(s *metav1.Contract, c DescriptionContext) error {
 	var list errors.ErrorList
 
 	list.Add(
@@ -91,7 +91,7 @@ func ValidateContract(s *v1.Contract, c DescriptionContext) error {
 	return list.Result()
 }
 
-func ValidateServiceInstance(s *v1.ServiceInstance, c DescriptionContext) error {
+func ValidateServiceInstance(s *metav1.ServiceInstance, c DescriptionContext) error {
 	var list errors.ErrorList
 
 	list.Add(
@@ -107,7 +107,7 @@ func ValidateServiceInstance(s *v1.ServiceInstance, c DescriptionContext) error 
 	return list.Result()
 }
 
-func ValidateInstaller(s *v1.Installer, c DescriptionContext) error {
+func ValidateInstaller(s *metav1.Installer, c DescriptionContext) error {
 	var list errors.ErrorList
 
 	list.Add(
@@ -121,7 +121,7 @@ func ValidateInstaller(s *v1.Installer, c DescriptionContext) error {
 	return list.Result()
 }
 
-func ValidateManagedService(s *v1.ManagedService, c DescriptionContext) error {
+func ValidateManagedService(s *metav1.ManagedService, c DescriptionContext) error {
 	var list errors.ErrorList
 
 	list.Add(
@@ -135,13 +135,13 @@ func ValidateManagedService(s *v1.ManagedService, c DescriptionContext) error {
 	return list.Result()
 }
 
-func ValidateDependencyResolution(s *v1.DependencyResolution, c DescriptionContext) error {
+func ValidateDependencyResolution(s *metav1.DependencyResolution, c DescriptionContext) error {
 	var list errors.ErrorList
 
 	list.Add(
 		utils.CheckFlatName(s.Name, "name"),
-		utils.CheckValues(s.Resolution, "resolution", v1.DEPRES_MANGED, v1.DEPRES_CONFIGURED),
-		utils.CheckValues(s.Usage, "usage", v1.DEPUSE_SHARED, v1.DEPUSE_CONFIGURED, v1.DEPUSE_EXCLUSIVE),
+		utils.CheckValues(s.Resolution, "resolution", metav1.DEPRES_MANGED, metav1.DEPRES_CONFIGURED),
+		utils.CheckValues(s.Usage, "usage", metav1.DEPUSE_SHARED, metav1.DEPUSE_CONFIGURED, metav1.DEPUSE_EXCLUSIVE),
 		s.Labels.Validate(),
 	)
 	return list.Result()

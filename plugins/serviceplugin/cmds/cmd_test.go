@@ -6,21 +6,21 @@ import (
 	"bytes"
 
 	. "github.com/mandelsoft/goutils/testutils"
-	"github.com/mandelsoft/vfs/pkg/osfs"
-	"github.com/mandelsoft/vfs/pkg/projectionfs"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	ocmdesc "github.com/open-component-model/service-model/api/ocm"
-	mutils "github.com/open-component-model/service-model/api/utils"
 	. "github.com/open-component-model/service-model/examples"
-	v1 "ocm.software/ocm/api/ocm/compdesc/meta/v1"
-	"ocm.software/ocm/api/ocm/extensions/artifacttypes"
 	. "ocm.software/ocm/api/ocm/plugin/testutils"
-	"ocm.software/ocm/api/utils/accessio"
-	"ocm.software/ocm/api/utils/mime"
 	. "ocm.software/ocm/cmds/ocm/testhelper"
 
+	"github.com/mandelsoft/vfs/pkg/osfs"
+	"github.com/mandelsoft/vfs/pkg/projectionfs"
+	ocmdesc "github.com/open-component-model/service-model/api/ocm"
+	mutils "github.com/open-component-model/service-model/api/utils"
+	ocmmeta "ocm.software/ocm/api/ocm/compdesc/meta/v1"
+	"ocm.software/ocm/api/ocm/extensions/artifacttypes"
 	"ocm.software/ocm/api/ocm/extensions/attrs/plugincacheattr"
+	"ocm.software/ocm/api/utils/accessio"
+	"ocm.software/ocm/api/utils/mime"
 )
 
 const ARCH = "arch.ctf"
@@ -45,10 +45,10 @@ var _ = Describe("cliplugin", func() {
 
 			env.OCMCommonTransport(ARCH, accessio.FormatDirectory, func() {
 				env.ComponentVersion(COMP_MSP_GARDENER, VERS_MSP_GARDENER, func() {
-					env.Resource("service", VERS_MSP_GARDENER, ocmdesc.RESOURCE_TYPE, v1.LocalRelation, func() {
+					env.Resource("service", VERS_MSP_GARDENER, ocmdesc.RESOURCE_TYPE, ocmmeta.LocalRelation, func() {
 						env.BlobStringData(mime.MIME_YAML, MSPGardener)
 					})
-					env.Resource("installer", VERS_MSP_GARDENER, artifacttypes.PLAIN_TEXT, v1.LocalRelation, func() {
+					env.Resource("installer", VERS_MSP_GARDENER, artifacttypes.PLAIN_TEXT, ocmmeta.LocalRelation, func() {
 						env.BlobStringData(mime.MIME_TEXT, "some installer description")
 					})
 				})

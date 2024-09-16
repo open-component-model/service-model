@@ -5,15 +5,14 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	. "ocm.software/ocm/api/helper/builder"
-	"ocm.software/ocm/api/ocm/extensions/artifacttypes"
-
-	"ocm.software/ocm/api/ocm/extensions/repositories/ctf"
-	"ocm.software/ocm/api/ocm/resolvers"
-	"ocm.software/ocm/api/utils/mime"
 
 	"github.com/open-component-model/service-model/api/ocm"
 	"github.com/open-component-model/service-model/examples"
-	v1 "ocm.software/ocm/api/ocm/compdesc/meta/v1"
+	ocmmeta "ocm.software/ocm/api/ocm/compdesc/meta/v1"
+	"ocm.software/ocm/api/ocm/extensions/artifacttypes"
+	"ocm.software/ocm/api/ocm/extensions/repositories/ctf"
+	"ocm.software/ocm/api/ocm/resolvers"
+	"ocm.software/ocm/api/utils/mime"
 
 	"ocm.software/ocm/api/utils/accessio"
 )
@@ -29,11 +28,11 @@ var _ = Describe("Test Environment", func() {
 		env.OCMCommonTransport(ARCH, accessio.FormatDirectory, func() {
 			env.Component(examples.COMP_MSP_GARDENER, func() {
 				env.Version(examples.VERS_MSP_GARDENER, func() {
-					env.Resource("servicedesc", examples.VERS_MSP_GARDENER, ocm.RESOURCE_TYPE, v1.LocalRelation, func() {
+					env.Resource("servicedesc", examples.VERS_MSP_GARDENER, ocm.RESOURCE_TYPE, ocmmeta.LocalRelation, func() {
 						env.BlobStringData(mime.MIME_YAML, examples.MSPGardener)
 					})
 
-					env.Resource("installer", examples.VERS_MSP_GARDENER, artifacttypes.PLAIN_TEXT, v1.LocalRelation, func() {
+					env.Resource("installer", examples.VERS_MSP_GARDENER, artifacttypes.PLAIN_TEXT, ocmmeta.LocalRelation, func() {
 						env.BlobStringData(mime.MIME_TEXT, "some installer definition")
 					})
 				})

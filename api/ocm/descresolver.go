@@ -5,7 +5,7 @@ import (
 
 	"github.com/mandelsoft/goutils/errors"
 	"github.com/mandelsoft/goutils/generics"
-	metav1 "github.com/open-component-model/service-model/api/meta/v1"
+	"github.com/open-component-model/service-model/api/identity"
 	"github.com/open-component-model/service-model/api/modeldesc"
 	"ocm.software/ocm/api/ocm"
 	"ocm.software/ocm/api/ocm/resolvers"
@@ -28,7 +28,7 @@ func NewServiceResolver(r ocm.ComponentVersionResolver) modeldesc.Resolver {
 	}
 }
 
-func (r *serviceResolver) LookupServiceVersionVariant(id metav1.ServiceVersionVariantIdentity) (*modeldesc.ServiceDescriptor, error) {
+func (r *serviceResolver) LookupServiceVersionVariant(id identity.ServiceVersionVariantIdentity) (*modeldesc.ServiceDescriptor, error) {
 	if id.IsConstraint() {
 		return nil, errors.ErrInvalid(modeldesc.KIND_SERVICEVERSION, id.String())
 	}
@@ -36,7 +36,7 @@ func (r *serviceResolver) LookupServiceVersionVariant(id metav1.ServiceVersionVa
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
-	cvid := common.NewNameVersion(id.Component, id.Version)
+	cvid := common.NewNameVersion(id.Component(), id.Version())
 	if err, ok := r.compvers[cvid]; !ok {
 		err := r.addCV(id.ComponentVersionId())
 		r.compvers[cvid] = err
@@ -96,30 +96,30 @@ func NewVersionResolver(resolver resolvers.ComponentResolver) modeldesc.VersionR
 	}
 }
 
-func (r *versionResolver) ListVersions(id metav1.ServiceIdentity, variant ...metav1.Variant) ([]string, error) {
-	if id.Component == "" || id.Name == "" {
+func (r *versionResolver) ListVersions(id identity.ServiceIdentity, variant ...identity.Variant) ([]string, error) {
+	if id.Component() == "" || id.Name() == "" {
 		return nil, errors.ErrInvalid(modeldesc.KIND_SERVICEIDENTITY, id.String())
 	}
 
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
-	services := r.versions[id.Component]
+	services := r.versions[id.Component()]
 	if services == nil {
 		services = newComEntry()
-		r.versions[id.Component] = services
-		services.versions, services.err = resolvers.ListComponentVersions(id.Component, r.resolver)
+		r.versions[id.Component()] = services
+		services.versions, services.err = resolvers.ListComponentVersions(id.Component(), r.resolver)
 	}
 
 	if services.err != nil {
 		return nil, services.err
 	}
 
-	versions := services.services[id.Name]
+	versions := services.services[id.Name()]
 	if versions == nil {
 		versions = []string{}
 		for _, v := range services.versions {
-			cand := metav1.NewServiceVersionVariantIdentity(id, v, variant...)
+			cand := identity.NewServiceVersionVariantIdentity(id, v, variant...)
 			s, err := r.Resolver.LookupServiceVersionVariant(cand)
 			if err != nil && !errors.IsErrNotFound(err) {
 				return nil, err
@@ -129,7 +129,7 @@ func (r *versionResolver) ListVersions(id metav1.ServiceIdentity, variant ...met
 			}
 		}
 		semverutils.SortVersions(versions)
-		services.services[id.Name] = versions
+		services.services[id.Name()] = versions
 	}
 
 	return versions, nil

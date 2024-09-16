@@ -1,17 +1,17 @@
-package v1_test
+package identity_test
 
 import (
 	. "github.com/mandelsoft/goutils/testutils"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	v1 "github.com/open-component-model/service-model/api/meta/v1"
+	"github.com/open-component-model/service-model/api/identity"
 )
 
-func CheckVariant(v v1.Variant, res string) {
+func CheckVariant(v identity.Variant, res string) {
 	key := Must(v.MarshalMapKey())
 	ExpectWithOffset(1, key).To(Equal(res))
 
-	var u v1.Variant
+	var u identity.Variant
 	MustBeSuccessfulWithOffset(1, u.UnmarshalMapKey(key))
 	ExpectWithOffset(1, u).To(DeepEqual(v))
 }
@@ -19,7 +19,7 @@ func CheckVariant(v v1.Variant, res string) {
 var _ = Describe("Variant Test Environment", func() {
 	It("simple", func() {
 		CheckVariant(
-			v1.Variant{
+			identity.Variant{
 				"alice": "bob",
 			},
 			"{alice=bob}",
@@ -28,7 +28,7 @@ var _ = Describe("Variant Test Environment", func() {
 
 	It("multi", func() {
 		CheckVariant(
-			v1.Variant{
+			identity.Variant{
 				"alice": "bob",
 				"petra": "tom",
 			},
@@ -38,7 +38,7 @@ var _ = Describe("Variant Test Environment", func() {
 
 	It("special,", func() {
 		CheckVariant(
-			v1.Variant{
+			identity.Variant{
 				"alice,": "bob",
 			},
 			"{alice\\,=bob}",
@@ -47,7 +47,7 @@ var _ = Describe("Variant Test Environment", func() {
 
 	It("special=", func() {
 		CheckVariant(
-			v1.Variant{
+			identity.Variant{
 				"alice=": "bob",
 			},
 			"{alice\\==bob}",
@@ -56,7 +56,7 @@ var _ = Describe("Variant Test Environment", func() {
 
 	It("special{}", func() {
 		CheckVariant(
-			v1.Variant{
+			identity.Variant{
 				"alice{}": "bob",
 			},
 			"{alice{\\}=bob}",
@@ -65,7 +65,7 @@ var _ = Describe("Variant Test Environment", func() {
 
 	It("special=", func() {
 		CheckVariant(
-			v1.Variant{
+			identity.Variant{
 				"alice\\": "bob",
 			},
 			"{alice\\\\=bob}",

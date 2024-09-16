@@ -1,4 +1,4 @@
-package v1
+package identity
 
 import (
 	"encoding/json"
@@ -14,37 +14,50 @@ import (
 )
 
 type ServiceIdentity struct {
-	Component string
-	Name      string
+	component string
+	name      string
 }
 
 func NewServiceId(component, name string) ServiceIdentity {
 	return ServiceIdentity{component, name}
 }
 
+func (id ServiceIdentity) Name() string {
+	return id.name
+}
+
+func (id ServiceIdentity) Component() string {
+	return id.component
+}
+
+func (id ServiceIdentity) ForComponent(c string) ServiceIdentity {
+	id.component = c
+	return id
+}
+
 func (id ServiceIdentity) Validate() error {
-	return utils.CheckFlatName(id.Name, "service name")
+	return utils.CheckFlatName(id.name, "service name")
 }
 
 func (id ServiceIdentity) IsRelative() bool {
-	return id.Component == ""
+	return id.component == ""
 }
 
 func (id ServiceIdentity) String() string {
-	if id.Component == "" {
-		return id.Name
+	if id.component == "" {
+		return id.name
 	}
-	return id.Component + "/" + id.Name
+	return id.component + "/" + id.name
 }
 
 func (id *ServiceIdentity) Parse(s string) error {
 	idx := strings.LastIndex(s, "/")
 	if idx >= 0 {
-		id.Component = s[:idx]
-		id.Name = s[idx+1:]
+		id.component = s[:idx]
+		id.name = s[idx+1:]
 	} else {
-		id.Name = s
-		id.Component = ""
+		id.name = s
+		id.component = ""
 	}
 	return nil
 }
@@ -98,25 +111,35 @@ func (id *ServiceVariantIdentity) Parse(s string) error {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+type _ServiceIdentity = ServiceIdentity
+
 type ServiceVersionIdentity struct {
-	ServiceIdentity `json:",inline"`
-	Version         string `json:"version"`
+	_ServiceIdentity
+	version string
 }
 
 func NewServiceVersionId(id ServiceIdentity, vers string) ServiceVersionIdentity {
 	return ServiceVersionIdentity{id, vers}
 }
 
+func (id ServiceVersionIdentity) Version() string {
+	return id.version
+}
+
+func (id ServiceVersionIdentity) ServiceIdentity() ServiceIdentity {
+	return id._ServiceIdentity
+}
+
 func (id ServiceVersionIdentity) ComponentVersionId() common.NameVersion {
-	return common.NewNameVersion(id.Component, id.Version)
+	return common.NewNameVersion(id.component, id.version)
 }
 
 func (id ServiceVersionIdentity) IsRelative() bool {
-	return id.Version == "" && id.ServiceIdentity.IsRelative()
+	return id.version == "" && id._ServiceIdentity.IsRelative()
 }
 
 func (id ServiceVersionIdentity) IsConstraint() bool {
-	_, err := semver.NewVersion(id.Version)
+	_, err := semver.NewVersion(id.version)
 	return err != nil
 }
 
@@ -125,21 +148,21 @@ func (r ServiceVersionIdentity) Equals(o ServiceVersionIdentity) bool {
 }
 
 func (id ServiceVersionIdentity) String() string {
-	if id.Version == "" {
-		return id.ServiceIdentity.String()
+	if id.version == "" {
+		return id._ServiceIdentity.String()
 	}
-	return id.ServiceIdentity.String() + ":" + id.Version
+	return id._ServiceIdentity.String() + ":" + id.version
 }
 
 func (id *ServiceVersionIdentity) Parse(s string) error {
 	var errlist errors.ErrorList
 	idx := strings.LastIndex(s, ":")
 	if idx >= 0 {
-		errlist.Add(id.ServiceIdentity.Parse(s[:idx]))
-		id.Version = s[idx+1:]
+		errlist.Add(id._ServiceIdentity.Parse(s[:idx]))
+		id.version = s[idx+1:]
 	} else {
-		errlist.Add(id.ServiceIdentity.Parse(s))
-		id.Version = ""
+		errlist.Add(id._ServiceIdentity.Parse(s))
+		id.version = ""
 	}
 	return errlist.Result()
 }
@@ -192,21 +215,23 @@ func ServiceVersionIdentityEquals(a, b ServiceVersionIdentity) bool {
 }
 
 func ServiceVersionIdentityCompare(a, b ServiceVersionIdentity) int {
-	c := strings.Compare(a.Component, b.Component)
+	c := strings.Compare(a.component, b.component)
 	if c == 0 {
-		c = strings.Compare(a.Name, b.Name)
+		c = strings.Compare(a.name, b.name)
 	}
 	if c == 0 {
-		c = strings.Compare(a.Version, b.Version)
+		c = strings.Compare(a.version, b.version)
 	}
 	return c
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
+type _ServiceVersionIdentity = ServiceVersionIdentity
+
 type ServiceVersionVariantIdentity struct {
-	ServiceVersionIdentity
-	Variant Variant
+	_ServiceVersionIdentity
+	variant Variant
 }
 
 func NewServiceVersionVariantIdentity(si ServiceIdentity, vers string, variant ...Variant) ServiceVersionVariantIdentity {
@@ -217,23 +242,31 @@ func NewServiceVersionVariantIdentityFor(svi ServiceVersionIdentity, variant ...
 	return ServiceVersionVariantIdentity{svi, general.Optional(variant...)}
 }
 
+func (id ServiceVersionVariantIdentity) Variant() Variant {
+	return id.variant.Copy()
+}
+
+func (id ServiceVersionVariantIdentity) ServiceVersionIdentity() ServiceVersionIdentity {
+	return id._ServiceVersionIdentity
+}
+
 func (id ServiceVersionVariantIdentity) GetServiceVariantName() string {
-	if len(id.Variant) == 0 {
-		return id.ServiceIdentity.String()
+	if len(id.variant) == 0 {
+		return id._ServiceIdentity.String()
 	}
-	return id.ServiceIdentity.String() + id.Variant.String()
+	return id._ServiceIdentity.String() + id.variant.String()
 }
 
 func (id ServiceVersionVariantIdentity) String() string {
-	if len(id.Variant) == 0 {
-		return id.ServiceVersionIdentity.String()
+	if len(id.variant) == 0 {
+		return id._ServiceVersionIdentity.String()
 	}
-	return id.ServiceVersionIdentity.String() + id.Variant.String()
+	return id._ServiceVersionIdentity.String() + id.variant.String()
 }
 
 func (id ServiceVersionVariantIdentity) Equals(o ServiceVersionVariantIdentity) bool {
-	return id.ServiceVersionIdentity.Equals(o.ServiceVersionIdentity) &&
-		id.Variant.Equals(o.Variant)
+	return id._ServiceVersionIdentity.Equals(o._ServiceVersionIdentity) &&
+		id.variant.Equals(o.variant)
 }
 
 func (id *ServiceVersionVariantIdentity) Parse(s string) error {
@@ -243,10 +276,10 @@ func (id *ServiceVersionVariantIdentity) Parse(s string) error {
 		if i < 0 {
 			return fmt.Errorf("invalid service varaint version %q", s)
 		}
-		errlist.Add(id.ServiceVersionIdentity.Parse(s[:i]))
-		errlist.Add(id.Variant.Parse(s[i:]))
+		errlist.Add(id._ServiceVersionIdentity.Parse(s[:i]))
+		errlist.Add(id.variant.Parse(s[i:]))
 	} else {
-		errlist.Add(id.ServiceVersionIdentity.Parse(s))
+		errlist.Add(id._ServiceVersionIdentity.Parse(s))
 	}
 	return errlist.Result()
 }
@@ -299,9 +332,9 @@ func ServiceVersionVariantIdentityEquals(a, b ServiceVersionVariantIdentity) boo
 }
 
 func ServiceVersionVariantIdentityCompare(a, b ServiceVersionVariantIdentity) int {
-	c := ServiceVersionIdentityCompare(a.ServiceVersionIdentity, b.ServiceVersionIdentity)
+	c := ServiceVersionIdentityCompare(a._ServiceVersionIdentity, b._ServiceVersionIdentity)
 	if c == 0 {
-		c = strings.Compare(a.Variant.String(), b.Variant.String())
+		c = strings.Compare(a.variant.String(), b.variant.String())
 	}
 	return c
 }

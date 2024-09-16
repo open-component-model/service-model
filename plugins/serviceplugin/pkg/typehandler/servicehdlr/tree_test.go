@@ -1,13 +1,15 @@
-package typehandler_test
+package servicehdlr_test
 
 import (
 	"bytes"
 
-	"github.com/mandelsoft/goutils/sliceutils"
 	. "github.com/mandelsoft/goutils/testutils"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	"github.com/mandelsoft/goutils/sliceutils"
 	"github.com/open-component-model/service-model/api/crossref"
+	"github.com/open-component-model/service-model/api/identity"
 	metav1 "github.com/open-component-model/service-model/api/meta/v1"
 	"github.com/open-component-model/service-model/api/modeldesc"
 	"github.com/open-component-model/service-model/api/modeldesc/types/contract"
@@ -17,7 +19,7 @@ import (
 	"github.com/open-component-model/service-model/api/modeldesc/vpi"
 	mutils "github.com/open-component-model/service-model/api/utils"
 	"github.com/open-component-model/service-model/plugins/serviceplugin/pkg/typehandler"
-	"github.com/open-component-model/service-model/plugins/serviceplugin/pkg/typehdlrutils"
+	"github.com/open-component-model/service-model/plugins/serviceplugin/pkg/typehandler/servicehdlr"
 	"ocm.software/ocm/api/cli"
 	"ocm.software/ocm/cmds/ocm/common/output"
 	"ocm.software/ocm/cmds/ocm/common/processing"
@@ -29,16 +31,16 @@ var COMP_S2 = "acme.com/s2"
 var COMP_S3 = "acme.com/s3"
 var VERS = "v1.0.0"
 
-var s11 = metav1.NewServiceId(COMP_S1, "provider")
-var s12 = metav1.NewServiceId(COMP_S1, "installer")
-var s2 = metav1.NewServiceId(COMP_S2, "service")
-var s3 = metav1.NewServiceId(COMP_S3, "service")
+var s11 = identity.NewServiceId(COMP_S1, "provider")
+var s12 = identity.NewServiceId(COMP_S1, "installer")
+var s2 = identity.NewServiceId(COMP_S2, "service")
+var s3 = identity.NewServiceId(COMP_S3, "service")
 
 type TypeHandler struct {
-	objs []*typehandler.Object
+	objs []*servicehdlr.Object
 }
 
-func NewTypeHandler(objs []*typehandler.Object) (utils.TypeHandler, error) {
+func NewTypeHandler(objs []*servicehdlr.Object) (utils.TypeHandler, error) {
 	t := &TypeHandler{
 		objs: objs,
 	}
@@ -67,7 +69,7 @@ func (k *Kind) GetType() string {
 	return k.kind
 }
 
-func (k *Kind) GetVariant() metav1.Variant {
+func (k *Kind) GetVariant() identity.Variant {
 	return nil
 }
 
@@ -87,8 +89,8 @@ func (k *Kind) GetReferences() crossref.References {
 	panic("implement me")
 }
 
-func NewObject(sid metav1.ServiceIdentity, vers string, kind string, short string) *typehandler.Object {
-	return typehandler.NewObject(nil, &modeldesc.ServiceDescriptor{
+func NewObject(sid identity.ServiceIdentity, vers string, kind string, short string) *servicehdlr.Object {
+	return servicehdlr.NewObject(nil, &modeldesc.ServiceDescriptor{
 		CommonServiceSpec: vpi.CommonServiceSpec{
 			Service:   sid,
 			Version:   vers,
@@ -102,7 +104,7 @@ func TableOutput(opts *output.Options, mapping processing.MappingFunction, wide 
 	return &output.TableOutput{
 		Headers: output.Fields("COMPONENT", "NAME", "VERSION", "VARIANT", "KIND", "SHORTNAME", wide),
 		Options: opts,
-		Chain:   processing.Append(typehandler.Sort, typehdlrutils.Normalize),
+		Chain:   processing.Append(servicehdlr.Sort, typehandler.Normalize),
 		Mapping: mapping,
 	}
 }
@@ -116,15 +118,15 @@ func getTree(opts *output.Options) output.Output {
 }
 
 func mapGetRegularOutput(e interface{}) interface{} {
-	obj := e.(*typehandler.Object)
+	obj := e.(*servicehdlr.Object)
 	if obj.Node == nil {
 		return sliceutils.AsSlice("...", "", "", "", "", "")
 	}
 	r := obj.Element
 	if r == nil {
-		return sliceutils.AsSlice(obj.Id.Component, obj.Id.Name, obj.Id.Version, obj.Id.Variant.String(), "", "")
+		return sliceutils.AsSlice(obj.Id.Component(), obj.Id.Name(), obj.Id.Version(), obj.Id.Variant().String(), "", "")
 	}
-	return sliceutils.AsSlice(r.Service.Component, r.Service.Name, r.Version, r.Kind.GetVariant().String(), r.Kind.GetType(), r.ShortName)
+	return sliceutils.AsSlice(r.Service.Component(), r.Service.Name(), r.Version, r.Kind.GetVariant().String(), r.Kind.GetType(), r.ShortName)
 }
 
 var _ = Describe("TreeTest Environment", func() {
@@ -137,7 +139,7 @@ var _ = Describe("TreeTest Environment", func() {
 	})
 
 	It("simple list", func() {
-		objs := []*typehandler.Object{
+		objs := []*servicehdlr.Object{
 			NewObject(s11, VERS, provider.TYPE, "gardener"),
 			NewObject(s12, VERS, installer.TYPE, "gardener installer"),
 		}
@@ -155,10 +157,10 @@ var _ = Describe("TreeTest Environment", func() {
 	})
 
 	It("simple usage tree", func() {
-		objs := []*typehandler.Object{
+		objs := []*servicehdlr.Object{
 			NewObject(s11, VERS, provider.TYPE, "gardener"),
 			NewObject(s12, VERS, installer.TYPE, "gardener installer"),
-			NewObject(s12, VERS, installer.TYPE, "gardener installer").WithHistory(typehandler.NewNameVersion(s11, VERS)),
+			NewObject(s12, VERS, installer.TYPE, "gardener installer").WithHistory(servicehdlr.NewNameVersion(s11, VERS)),
 		}
 		hdlr := Must(NewTypeHandler(objs))
 
@@ -174,21 +176,21 @@ var _ = Describe("TreeTest Environment", func() {
 	})
 
 	It("complex usage tree", func() {
-		objs := []*typehandler.Object{
+		objs := []*servicehdlr.Object{
 			NewObject(s12, VERS, installer.TYPE, "gardener installer"),
-			NewObject(s2, VERS, ordinary.TYPE, "common").WithHistory(typehandler.NewNameVersion(s12, VERS)),
-			NewObject(s3, VERS, contract.TYPE, "common contract").WithHistory(typehandler.NewNameVersion(s12, VERS), typehandler.NewNameVersion(s2, VERS)),
+			NewObject(s2, VERS, ordinary.TYPE, "common").WithHistory(servicehdlr.NewNameVersion(s12, VERS)),
+			NewObject(s3, VERS, contract.TYPE, "common contract").WithHistory(servicehdlr.NewNameVersion(s12, VERS), servicehdlr.NewNameVersion(s2, VERS)),
 
 			NewObject(s11, VERS, provider.TYPE, "gardener"),
-			NewObject(s12, VERS, installer.TYPE, "gardener installer").WithHistory(typehandler.NewNameVersion(s11, VERS)),
-			NewObject(s2, VERS, ordinary.TYPE, "common").WithHistory(typehandler.NewNameVersion(s11, VERS), typehandler.NewNameVersion(s12, VERS)),
-			NewObject(s3, VERS, contract.TYPE, "common contract").WithHistory(typehandler.NewNameVersion(s11, VERS), typehandler.NewNameVersion(s12, VERS), typehandler.NewNameVersion(s2, VERS)),
+			NewObject(s12, VERS, installer.TYPE, "gardener installer").WithHistory(servicehdlr.NewNameVersion(s11, VERS)),
+			NewObject(s2, VERS, ordinary.TYPE, "common").WithHistory(servicehdlr.NewNameVersion(s11, VERS), servicehdlr.NewNameVersion(s12, VERS)),
+			NewObject(s3, VERS, contract.TYPE, "common contract").WithHistory(servicehdlr.NewNameVersion(s11, VERS), servicehdlr.NewNameVersion(s12, VERS), servicehdlr.NewNameVersion(s2, VERS)),
 
-			NewObject(s2, VERS, ordinary.TYPE, "commom").WithHistory(typehandler.NewNameVersion(s11, VERS)),
-			NewObject(s3, VERS, contract.TYPE, "common contract").WithHistory(typehandler.NewNameVersion(s11, VERS), typehandler.NewNameVersion(s2, VERS)),
+			NewObject(s2, VERS, ordinary.TYPE, "commom").WithHistory(servicehdlr.NewNameVersion(s11, VERS)),
+			NewObject(s3, VERS, contract.TYPE, "common contract").WithHistory(servicehdlr.NewNameVersion(s11, VERS), servicehdlr.NewNameVersion(s2, VERS)),
 
 			NewObject(s2, VERS, ordinary.TYPE, "commom"),
-			NewObject(s3, VERS, contract.TYPE, "common contract").WithHistory(typehandler.NewNameVersion(s2, VERS)),
+			NewObject(s3, VERS, contract.TYPE, "common contract").WithHistory(servicehdlr.NewNameVersion(s2, VERS)),
 
 			NewObject(s3, VERS, contract.TYPE, "common contract"),
 		}

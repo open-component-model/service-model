@@ -3,6 +3,7 @@ package installer
 import (
 	"slices"
 
+	"github.com/open-component-model/service-model/api/identity"
 	metav1 "github.com/open-component-model/service-model/api/meta/v1"
 	modeldesc "github.com/open-component-model/service-model/api/modeldesc/internal"
 	me "github.com/open-component-model/service-model/api/modeldesc/types/installer"
@@ -18,7 +19,7 @@ type ServiceSpec struct {
 	metav1.CommonServiceImplementationSpec
 
 	TargetEnvironment metav1.TargetEnvironment `json:"targetEnvironment,omitempty"`
-	InstalledService  metav1.ServiceIdentity   `json:"installedService,omitempty"`
+	InstalledService  identity.ServiceIdentity `json:"installedService,omitempty"`
 	Versions          []string                 `json:"versions,omitempty"`
 	InstallerResource metav1.ResourceReference `json:"installerResource"`
 	InstallerType     string                   `json:"installerType"`

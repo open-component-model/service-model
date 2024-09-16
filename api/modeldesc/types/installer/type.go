@@ -5,6 +5,7 @@ import (
 
 	"github.com/mandelsoft/goutils/errors"
 	"github.com/open-component-model/service-model/api/crossref"
+	"github.com/open-component-model/service-model/api/identity"
 
 	metav1 "github.com/open-component-model/service-model/api/meta/v1"
 	"github.com/open-component-model/service-model/api/modeldesc/internal"
@@ -16,7 +17,7 @@ type ServiceSpec struct {
 	metav1.CommonServiceImplementationSpec
 
 	TargetEnvironment metav1.TargetEnvironment `json:"targetEnvironment,omitempty"`
-	InstalledService  metav1.ServiceIdentity   `json:"installedService,omitempty"`
+	InstalledService  identity.ServiceIdentity `json:"installedService,omitempty"`
 	Versions          []string                 `json:"versions,omitempty"`
 	InstallerResource metav1.ResourceReference `json:"installerResource"`
 	InstallerType     string                   `json:"installerType"`
@@ -26,9 +27,9 @@ func (s *ServiceSpec) ToCanonicalForm(c internal.DescriptionContext) internal.Se
 	r := *s
 	r.CommonServiceImplementationSpec = *internal.CommonServiceImplementationSpecToCanonicalForm(&r.CommonServiceImplementationSpec, c)
 
-	if s.InstalledService.Name != "" {
+	if s.InstalledService.Name() != "" {
 		if r.InstalledService.IsRelative() {
-			r.InstalledService.Component = c.GetName()
+			r.InstalledService = r.InstalledService.ForComponent(c.GetName())
 		}
 		if len(r.Versions) == 0 {
 			r.Versions = []string{c.GetVersion()}
@@ -40,10 +41,10 @@ func (s *ServiceSpec) ToCanonicalForm(c internal.DescriptionContext) internal.Se
 func (s *ServiceSpec) Validate(c internal.DescriptionContext) error {
 	var list errors.ErrorList
 
-	if s.InstalledService.Name != "" {
-		if s.InstalledService.Component == c.GetName() || s.InstalledService.Component == "" {
-			if c.LookupService(s.InstalledService.Name) == nil {
-				list.Add(fmt.Errorf("local installer service %q not defined", s.InstalledService.Name))
+	if s.InstalledService.Name() != "" {
+		if s.InstalledService.Component() == c.GetName() || s.InstalledService.Component() == "" {
+			if c.LookupService(s.InstalledService.Name()) == nil {
+				list.Add(fmt.Errorf("local installer service %q not defined", s.InstalledService.Name()))
 			}
 		}
 	} else {

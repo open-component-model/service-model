@@ -4,17 +4,18 @@ import (
 	"maps"
 	"slices"
 
+	"github.com/open-component-model/service-model/api/identity"
 	"github.com/open-component-model/service-model/api/utils"
 )
 
 type ServiceInstances = utils.CopyableList[ServiceInstance]
 
 type ServiceInstance struct {
-	Service  ServiceIdentity `json:"service"`
-	Variant  Variant         `json:"variant,omitempty"`
-	Versions []string        `json:"versions,omitempty"`
-	Dynamic  bool            `json:"dynamic"`
-	Static   []StaticInfo    `json:"static,omitempty"`
+	Service  identity.ServiceIdentity `json:"service"`
+	Variant  identity.Variant         `json:"variant,omitempty"`
+	Versions []string                 `json:"versions,omitempty"`
+	Dynamic  bool                     `json:"dynamic"`
+	Static   []StaticInfo             `json:"static,omitempty"`
 }
 
 func (i ServiceInstance) Copy() *ServiceInstance {

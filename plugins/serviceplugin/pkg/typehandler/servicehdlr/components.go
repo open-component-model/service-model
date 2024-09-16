@@ -1,11 +1,11 @@
-package typehandler
+package servicehdlr
 
 import (
 	"strings"
 
 	"github.com/mandelsoft/goutils/errors"
 	"github.com/mandelsoft/goutils/generics"
-	v1 "github.com/open-component-model/service-model/api/meta/v1"
+	"github.com/open-component-model/service-model/api/identity"
 	"github.com/open-component-model/service-model/api/modeldesc"
 	modelocm "github.com/open-component-model/service-model/api/ocm"
 	"github.com/open-component-model/service-model/api/utils"
@@ -69,17 +69,17 @@ func (t *Components) Get(spec cmdutils.ElemSpec) ([]output.Object, error) {
 		return nil, errors.ErrInvalid(modeldesc.KIND_SERVICEIDENTITY, name)
 	}
 
-	id, err := utils.Parse[v1.ServiceVariantIdentity](name)
+	id, err := utils.Parse[identity.ServiceVariantIdentity](name)
 	if err != nil {
 		return nil, errors.Wrapf(err, "service variant %q", name)
 	}
 
 	var result []output.Object
 	for _, c := range t.components {
-		if id.Component != "" && c.ComponentVersion.GetName() != id.Component {
+		if id.Component() != "" && c.ComponentVersion.GetName() != id.Component() {
 			continue
 		}
-		svid := v1.NewServiceVersionVariantIdentity(v1.NewServiceId(c.ComponentVersion.GetName(), id.Name), c.ComponentVersion.GetVersion(), id.Variant)
+		svid := identity.NewServiceVersionVariantIdentity(identity.NewServiceId(c.ComponentVersion.GetName(), id.Name()), c.ComponentVersion.GetVersion(), id.Variant)
 		s, err := t.Services.get(svid)
 		if err != nil && !errors.IsErrNotFound(err) {
 			return nil, err

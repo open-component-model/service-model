@@ -2,6 +2,7 @@ package v1
 
 import (
 	"github.com/mandelsoft/goutils/errors"
+	"github.com/mandelsoft/goutils/sliceutils"
 	"github.com/open-component-model/service-model/api/utils"
 	"ocm.software/ocm/api/utils/runtime"
 )
@@ -9,7 +10,7 @@ import (
 type Labels []Label
 
 func (l Labels) Copy() Labels {
-	c := utils.InitialSliceFor(l)
+	c := sliceutils.InitialSliceFor(l)
 	for i, e := range l {
 		c[i] = *e.Copy()
 	}

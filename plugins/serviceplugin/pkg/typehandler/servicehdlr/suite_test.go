@@ -1,4 +1,4 @@
-package typehandler_test
+package servicehdlr_test
 
 import (
 	"testing"

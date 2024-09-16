@@ -2,6 +2,7 @@ package contract
 
 import (
 	"github.com/mandelsoft/goutils/generics"
+	"github.com/open-component-model/service-model/api/identity"
 	metav1 "github.com/open-component-model/service-model/api/meta/v1"
 	modeldesc "github.com/open-component-model/service-model/api/modeldesc/internal"
 	me "github.com/open-component-model/service-model/api/modeldesc/types/contract"
@@ -23,7 +24,7 @@ type ServiceSpec struct {
 	Artifact             *metav1.ResourceReference `json:"artifact,omitempty"`
 }
 
-func (s *ServiceSpec) GetVariant() metav1.Variant {
+func (s *ServiceSpec) GetVariant() identity.Variant {
 	return nil
 }
 

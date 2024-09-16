@@ -6,6 +6,7 @@ import (
 	"github.com/mandelsoft/goutils/errors"
 	"github.com/mandelsoft/goutils/generics"
 	"github.com/open-component-model/service-model/api/crossref"
+	"github.com/open-component-model/service-model/api/identity"
 	metav1 "github.com/open-component-model/service-model/api/meta/v1"
 	"github.com/open-component-model/service-model/api/modeldesc/internal"
 	"ocm.software/ocm/api/utils/runtime"
@@ -22,7 +23,7 @@ type ServiceSpec struct {
 	Artifact             *metav1.ResourceReference `json:"artifact,omitempty"`
 }
 
-func (s *ServiceSpec) GetVariant() metav1.Variant {
+func (s *ServiceSpec) GetVariant() identity.Variant {
 	return nil
 }
 

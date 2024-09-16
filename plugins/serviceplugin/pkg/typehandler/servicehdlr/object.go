@@ -1,4 +1,4 @@
-package typehandler
+package servicehdlr
 
 import (
 	"encoding/json"
@@ -7,10 +7,10 @@ import (
 	"strings"
 
 	"github.com/mandelsoft/goutils/sliceutils"
-	v1 "github.com/open-component-model/service-model/api/meta/v1"
+	"github.com/open-component-model/service-model/api/identity"
 	"github.com/open-component-model/service-model/api/modeldesc"
 	"github.com/open-component-model/service-model/api/utils"
-	"github.com/open-component-model/service-model/plugins/serviceplugin/pkg/typehdlrutils"
+	"github.com/open-component-model/service-model/plugins/serviceplugin/pkg/typehandler"
 	common "ocm.software/ocm/api/utils/misc"
 	"ocm.software/ocm/api/utils/runtime"
 	"ocm.software/ocm/cmds/ocm/common/processing"
@@ -21,7 +21,7 @@ func Elem(e interface{}) *modeldesc.ServiceDescriptor {
 	return e.(*Object).Element
 }
 
-type Objects = typehdlrutils.Objects[*Object]
+type Objects = typehandler.Objects[*Object]
 
 type Manifest struct {
 	History common.History  `json:"context,omitempty"`
@@ -31,7 +31,7 @@ type Manifest struct {
 type Object struct {
 	History   common.History
 	Sort      common.History
-	Id        v1.ServiceVersionVariantIdentity
+	Id        identity.ServiceVersionVariantIdentity
 	Key       common.NameVersion
 	HasNested bool
 	Duplicate bool
@@ -41,8 +41,8 @@ type Object struct {
 }
 
 func NewObject(hist common.History, elem *modeldesc.ServiceDescriptor) *Object {
-	id := v1.NewServiceVersionVariantIdentity(elem.Service, elem.Version, elem.Kind.GetVariant())
-	nv := NewNameVersion(id.ServiceIdentity, id.Version, id.Variant)
+	id := identity.NewServiceVersionVariantIdentity(elem.Service, elem.Version, elem.Kind.GetVariant())
+	nv := NewNameVersion(id.ServiceIdentity(), id.Version(), id.Variant())
 	return &Object{
 		History: hist,
 		Sort:    sliceutils.AsSlice(nv),
@@ -53,9 +53,9 @@ func NewObject(hist common.History, elem *modeldesc.ServiceDescriptor) *Object {
 	}
 }
 
-func NewConstraintObject(hist common.History, sid v1.ServiceIdentity, constraints []string, variant ...v1.Variant) *Object {
+func NewConstraintObject(hist common.History, sid identity.ServiceIdentity, constraints []string, variant ...identity.Variant) *Object {
 	vers := strings.Join(constraints, ";")
-	id := v1.NewServiceVersionVariantIdentity(sid, vers, variant...)
+	id := identity.NewServiceVersionVariantIdentity(sid, vers, variant...)
 	nv := NewNameVersion(sid, vers, variant...)
 	return &Object{
 		History: hist,
@@ -79,9 +79,9 @@ func (o *Object) WithHistory(hist ...common.NameVersion) *Object {
 }
 
 var (
-	_ common.HistorySource     = (*Object)(nil)
-	_ tree.Object              = (*Object)(nil)
-	_ typehdlrutils.NormObject = (*Object)(nil)
+	_ common.HistorySource   = (*Object)(nil)
+	_ tree.Object            = (*Object)(nil)
+	_ typehandler.NormObject = (*Object)(nil)
 )
 
 func (o *Object) AsManifest() interface{} {
@@ -109,14 +109,14 @@ func (o *Object) IsValid() bool {
 }
 
 func (o *Object) GetKey() common.NameVersion {
-	return NewNameVersion(o.Id.ServiceIdentity, o.Id.Version, o.Id.Variant)
+	return NewNameVersion(o.Id.ServiceIdentity(), o.Id.Version(), o.Id.Variant())
 }
 
-func (o *Object) CreateContinue() typehdlrutils.NormObject {
+func (o *Object) CreateContinue() typehandler.NormObject {
 	dummy := *o
 	dummy.Node = nil
 	dummy.Element = nil
-	dummy.History = append(dummy.History, NewNameVersion(o.Id.ServiceIdentity, o.Id.Version, o.Id.Variant))
+	dummy.History = append(dummy.History, NewNameVersion(o.Id.ServiceIdentity(), o.Id.Version(), o.Id.Variant()))
 	return &dummy
 }
 
@@ -127,6 +127,6 @@ func (o *Object) Compare(b *Object) int {
 // Sort is a processing chain sorting original objects provided by type handler.
 var Sort = processing.Sort(utils.Compare[*Object])
 
-func NewNameVersion(sid v1.ServiceIdentity, version string, variant ...v1.Variant) common.NameVersion {
-	return common.NewNameVersion(v1.NewServiceVersionVariantIdentity(sid, version, variant...).GetServiceVariantName(), version)
+func NewNameVersion(sid identity.ServiceIdentity, version string, variant ...identity.Variant) common.NameVersion {
+	return common.NewNameVersion(identity.NewServiceVersionVariantIdentity(sid, version, variant...).GetServiceVariantName(), version)
 }

@@ -1,14 +1,14 @@
 package internal
 
 import (
+	"github.com/mandelsoft/goutils/sliceutils"
 	metav1 "github.com/open-component-model/service-model/api/meta/v1"
-	"github.com/open-component-model/service-model/api/utils"
 )
 
 func CommonToCanonicalForm(in *metav1.CommonServiceSpec, c DescriptionContext) *metav1.CommonServiceSpec {
 	out := in.Copy()
 	if c.MatchComponent(out.Service) {
-		out.Service.Component = c.GetName()
+		out.Service = out.Service.ForComponent(c.GetName())
 	}
 	if out.Version == "" {
 		out.Version = c.GetVersion()
@@ -30,7 +30,7 @@ func CommonServiceImplementationSpecToCanonicalForm(in *metav1.CommonServiceImpl
 func ContractToCanonicalForm(in *metav1.Contract, c DescriptionContext) *metav1.Contract {
 	out := in.Copy()
 	if c.MatchComponent(out.Service) {
-		out.Service.Component = c.GetName()
+		out.Service = out.Service.ForComponent(c.GetName())
 	}
 	if out.Version == "" {
 		out.Version = c.GetVersion()
@@ -41,7 +41,7 @@ func ContractToCanonicalForm(in *metav1.Contract, c DescriptionContext) *metav1.
 func DependencyToCanonicalForm(in *metav1.Dependency, c DescriptionContext) *metav1.Dependency {
 	out := in.Copy()
 	if c.MatchComponent(in.Service) {
-		out.Service.Component = c.GetName()
+		out.Service = out.Service.ForComponent(c.GetName())
 	}
 	if len(in.VersionConstraints) == 0 {
 		out.VersionConstraints = []string{c.GetVersion()}
@@ -56,7 +56,7 @@ func DependencyToCanonicalForm(in *metav1.Dependency, c DescriptionContext) *met
 func ServiceInstanceToCanonicalForm(in *metav1.ServiceInstance, c DescriptionContext) *metav1.ServiceInstance {
 	out := in.Copy()
 	if c.MatchComponent(in.Service) {
-		out.Service.Component = c.GetName()
+		out.Service = out.Service.ForComponent(c.GetName())
 	}
 	// cannot default version list, because of constraints
 	// and no fixed version) in dependency.
@@ -67,7 +67,7 @@ func CommonConsumerServiceImplementationSpecToCanonicalForm(in *metav1.CommonCon
 	out := &metav1.CommonConsumerServiceImplementationSpec{
 		CommonServiceImplementationSpec: *CommonServiceImplementationSpecToCanonicalForm(&in.CommonServiceImplementationSpec, c),
 	}
-	out.Installers = utils.InitialSliceFor(in.Installers)
+	out.Installers = sliceutils.InitialSliceFor(in.Installers)
 	for i, e := range in.Installers {
 		out.Installers[i] = *InstallerToCanonicalForm(&e, c)
 	}
@@ -77,7 +77,7 @@ func CommonConsumerServiceImplementationSpecToCanonicalForm(in *metav1.CommonCon
 func InstallerToCanonicalForm(in *metav1.Installer, c DescriptionContext) *metav1.Installer {
 	out := in.Copy()
 	if c.MatchComponent(out.Service) {
-		out.Service.Component = c.GetName()
+		out.Service = out.Service.ForComponent(c.GetName())
 	}
 	if out.Version == "" {
 		out.Version = c.GetVersion()
@@ -88,10 +88,10 @@ func InstallerToCanonicalForm(in *metav1.Installer, c DescriptionContext) *metav
 func ManagedServiceToCanonicalForm(in *metav1.ManagedService, c DescriptionContext) *metav1.ManagedService {
 	out := in.Copy()
 	if c.MatchComponent(out.Service) {
-		out.Service.Component = c.GetName()
+		out.Service = out.Service.ForComponent(c.GetName())
 	}
 	if len(out.Versions) == 0 {
-		out.Versions = utils.Slice(c.GetVersion())
+		out.Versions = sliceutils.AsSlice(c.GetVersion())
 	}
 	return out
 }

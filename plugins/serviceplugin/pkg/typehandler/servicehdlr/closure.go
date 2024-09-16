@@ -1,8 +1,8 @@
-package typehandler
+package servicehdlr
 
 import (
 	"github.com/mandelsoft/goutils/set"
-	v1 "github.com/open-component-model/service-model/api/meta/v1"
+	"github.com/open-component-model/service-model/api/identity"
 	"github.com/open-component-model/service-model/api/modeldesc"
 	"github.com/spf13/pflag"
 	"ocm.software/ocm/api/cli"
@@ -50,7 +50,7 @@ func traverse(hist common.History, o *Object, octx cli.Context, state *State) []
 			result = append(result, obj)
 			continue // cannot traverse unconcrete deps
 		}
-		key := v1.NewServiceVersionVariantIdentity(d.Service, d.VersionConstraints[0], d.Variant)
+		key := identity.NewServiceVersionVariantIdentity(d.Service, d.VersionConstraints[0], d.Variant)
 		if key.IsConstraint() {
 			obj := NewConstraintObject(hist.Copy(), d.Service, d.VersionConstraints, d.Variant)
 			result = append(result, obj)

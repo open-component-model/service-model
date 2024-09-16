@@ -1,7 +1,7 @@
 package vpi
 
 import (
-	"github.com/open-component-model/service-model/api/utils"
+	"github.com/mandelsoft/goutils/sliceutils"
 )
 
 type Converter[I any, E any] interface {
@@ -22,7 +22,7 @@ func NewListConverter[I, E any](element Converter[*I, *E]) *ListConverter[I, E] 
 }
 
 func (l *ListConverter[I, E]) ConvertFrom(in []I) ([]E, error) {
-	out := utils.InitialSliceWithTypeFor[[]E](in)
+	out := sliceutils.InitialSliceWithTypeFor[[]E](in)
 	for i, e := range in {
 		r, err := l.element.ConvertFrom(&e)
 		if err != nil {
@@ -34,7 +34,7 @@ func (l *ListConverter[I, E]) ConvertFrom(in []I) ([]E, error) {
 }
 
 func (l *ListConverter[I, E]) ConvertTo(in []E) ([]I, error) {
-	out := utils.InitialSliceWithTypeFor[[]I](in)
+	out := sliceutils.InitialSliceWithTypeFor[[]I](in)
 	for i, e := range in {
 		r, err := l.element.ConvertTo(&e)
 		if err != nil {

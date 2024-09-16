@@ -3,6 +3,7 @@ package v1
 import (
 	"slices"
 
+	"github.com/open-component-model/service-model/api/identity"
 	"github.com/open-component-model/service-model/api/utils"
 )
 
@@ -19,15 +20,15 @@ const (
 type Dependencies = utils.CopyableList[Dependency]
 
 type Dependency struct {
-	Name               string           `json:"name"`
-	Service            ServiceIdentity  `json:"service"`
-	Variant            Variant          `json:"variant,omitempty"`
-	Kind               string           `json:"kind"`
-	VersionConstraints []string         `json:"versionConstraints,omitempty"`
-	ServiceInstances   ServiceInstances `json:"serviceInstances,omitempty"`
-	Optional           bool             `json:"optional,omitempty"`
-	Description        string           `json:"description,omitempty"`
-	Labels             Labels           `json:"labels,omitempty"`
+	Name               string                   `json:"name"`
+	Service            identity.ServiceIdentity `json:"service"`
+	Variant            identity.Variant         `json:"variant,omitempty"`
+	Kind               string                   `json:"kind"`
+	VersionConstraints []string                 `json:"versionConstraints,omitempty"`
+	ServiceInstances   ServiceInstances         `json:"serviceInstances,omitempty"`
+	Optional           bool                     `json:"optional,omitempty"`
+	Description        string                   `json:"description,omitempty"`
+	Labels             Labels                   `json:"labels,omitempty"`
 }
 
 func (d Dependency) Copy() *Dependency {

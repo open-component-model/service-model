@@ -1,4 +1,4 @@
-package typehdlrutils
+package typehandler
 
 import (
 	"ocm.software/ocm/cmds/ocm/common/data"

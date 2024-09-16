@@ -4,32 +4,30 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mandelsoft/goutils/general"
-	"github.com/mandelsoft/goutils/sliceutils"
-	ocmdesc "github.com/open-component-model/service-model/api/ocm"
 	"github.com/open-component-model/service-model/plugins/serviceplugin/pkg/typehandler"
-	"github.com/open-component-model/service-model/plugins/serviceplugin/pkg/typehdlrutils"
-	"github.com/spf13/pflag"
-	"ocm.software/ocm/api/cli"
-	"ocm.software/ocm/api/ocm/resolvers"
-	"ocm.software/ocm/cmds/ocm/commands/ocmcmds/common"
-	"ocm.software/ocm/cmds/ocm/commands/ocmcmds/common/handlers/comphdlr"
-	"ocm.software/ocm/cmds/ocm/common/processing"
-	"ocm.software/ocm/cmds/ocm/common/utils"
-
+	"github.com/open-component-model/service-model/plugins/serviceplugin/pkg/typehandler/servicehdlr"
 	// bind OCM configuration.
 	_ "ocm.software/ocm/api/ocm/plugin/ppi/config"
+
+	"github.com/mandelsoft/goutils/general"
+	"github.com/mandelsoft/goutils/sliceutils"
+	"github.com/mandelsoft/logging"
+	ocmdesc "github.com/open-component-model/service-model/api/ocm"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"ocm.software/ocm/api/cli"
+	"ocm.software/ocm/api/ocm"
+	"ocm.software/ocm/api/ocm/resolvers"
 	"ocm.software/ocm/cmds/ocm/commands/common/options/closureoption"
+	"ocm.software/ocm/cmds/ocm/commands/ocmcmds/common"
+	"ocm.software/ocm/cmds/ocm/commands/ocmcmds/common/handlers/comphdlr"
 	"ocm.software/ocm/cmds/ocm/commands/ocmcmds/common/options/lookupoption"
 	"ocm.software/ocm/cmds/ocm/commands/ocmcmds/common/options/repooption"
 	"ocm.software/ocm/cmds/ocm/commands/ocmcmds/common/options/versionconstraintsoption"
 	"ocm.software/ocm/cmds/ocm/common/options"
 	"ocm.software/ocm/cmds/ocm/common/output"
-
-	"github.com/mandelsoft/logging"
-	"github.com/spf13/cobra"
-
-	"ocm.software/ocm/api/ocm"
+	"ocm.software/ocm/cmds/ocm/common/processing"
+	"ocm.software/ocm/cmds/ocm/common/utils"
 )
 
 const Name = "services"
@@ -107,16 +105,16 @@ func (c *command) Run(cmd *cobra.Command, args []string) error {
 				mainargs = append(mainargs, a)
 			}
 		}
-		h, err = typehandler.ForComponents(NewOCM(ctx), resolver, output.From(c), repo, session, comps, typehandler.OptionsFor(c))
+		h, err = servicehdlr.ForComponents(NewOCM(ctx), resolver, output.From(c), repo, session, comps, servicehdlr.OptionsFor(c))
 		if err != nil {
 			return err
 		}
 	} else {
 		mainargs = args
-		h = typehandler.ForServices(resolver, typehandler.OptionsFor(c))
+		h = servicehdlr.ForServices(resolver, servicehdlr.OptionsFor(c))
 	}
 
-	oopts.OptionSet = append(oopts.OptionSet, typehandler.NewState(ocmdesc.NewServiceResolver(resolvers.ComponentVersionResolverForComponentResolver(resolver))))
+	oopts.OptionSet = append(oopts.OptionSet, servicehdlr.NewState(ocmdesc.NewServiceResolver(resolvers.ComponentVersionResolverForComponentResolver(resolver))))
 
 	return utils.HandleArgs(oopts, h, mainargs...)
 }
@@ -125,24 +123,24 @@ func TableOutput(opts *output.Options, mapping processing.MappingFunction, wide 
 	return &output.TableOutput{
 		Headers: output.Fields("COMPONENT", "NAME", "VERSION", "VARIANT", "KIND", "SHORTNAME", wide),
 		Options: opts,
-		Chain:   typehandler.Sort,
+		Chain:   servicehdlr.Sort,
 		Mapping: mapping,
 	}
 }
 
 var outputs = output.NewOutputs(getRegular, output.Outputs{
 	"tree": getTree,
-}).AddChainedManifestOutputs(output.ComposeChain(closureoption.OutputChainFunction(typehandler.ClosureExplode, comphdlr.Sort.Transform(typehdlrutils.NormalizeFunction))))
+}).AddChainedManifestOutputs(output.ComposeChain(closureoption.OutputChainFunction(servicehdlr.ClosureExplode, comphdlr.Sort.Transform(typehandler.NormalizeFunction))))
 
 func getRegular(opts *output.Options) output.Output {
-	return NormalizedTableOutput(closureoption.TableOutput(TableOutput(opts, mapGetRegularOutput), typehandler.ClosureExplode), typehdlrutils.NormalizeFunction).New()
+	return NormalizedTableOutput(closureoption.TableOutput(TableOutput(opts, mapGetRegularOutput), servicehdlr.ClosureExplode), typehandler.NormalizeFunction).New()
 }
 
 func getTree(opts *output.Options) output.Output {
-	return output.TreeOutput(NormalizedTableOutput(closureoption.TableOutput(TableOutput(opts, mapGetRegularOutput), typehandler.ClosureExplode), typehdlrutils.NormalizeFunction), "NESTING").New()
+	return output.TreeOutput(NormalizedTableOutput(closureoption.TableOutput(TableOutput(opts, mapGetRegularOutput), servicehdlr.ClosureExplode), typehandler.NormalizeFunction), "NESTING").New()
 }
 
-func NormalizedTableOutput(in *output.TableOutput, norm ...typehandler.NormalizeFunction) *output.TableOutput {
+func NormalizedTableOutput(in *output.TableOutput, norm ...servicehdlr.NormalizeFunction) *output.TableOutput {
 	f := general.Optional(norm...)
 	out := *in
 	out.Chain = processing.Append(in.Chain, processing.Transform(f.Normalizer(in.Options)))
@@ -150,13 +148,13 @@ func NormalizedTableOutput(in *output.TableOutput, norm ...typehandler.Normalize
 }
 
 func mapGetRegularOutput(e interface{}) interface{} {
-	obj := e.(*typehandler.Object)
+	obj := e.(*servicehdlr.Object)
 	if obj.Node == nil {
 		return sliceutils.AsSlice("...", "", "", "", "", "")
 	}
 	r := obj.Element
 	if r == nil {
-		return sliceutils.AsSlice(obj.Id.Component, obj.Id.Name, obj.Id.Version, obj.Id.Variant.String(), "", "")
+		return sliceutils.AsSlice(obj.Id.Component(), obj.Id.Name(), obj.Id.Version(), obj.Id.Variant().String(), "", "")
 	}
-	return sliceutils.AsSlice(r.Service.Component, r.Service.Name, r.Version, r.Kind.GetVariant().String(), r.Kind.GetType(), r.ShortName)
+	return sliceutils.AsSlice(r.Service.Component(), r.Service.Name(), r.Version, r.Kind.GetVariant().String(), r.Kind.GetType(), r.ShortName)
 }

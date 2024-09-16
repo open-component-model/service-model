@@ -1,11 +1,10 @@
 package modeldesc
 
 import (
-	common2 "github.com/open-component-model/service-model/api/common"
 	"github.com/open-component-model/service-model/api/crossref"
-	metav1 "github.com/open-component-model/service-model/api/meta/v1"
+	"github.com/open-component-model/service-model/api/identity"
 	"github.com/open-component-model/service-model/api/modeldesc/internal"
-	v1 "ocm.software/ocm/api/ocm/compdesc/meta/v1"
+	ocmmeta "ocm.software/ocm/api/ocm/compdesc/meta/v1"
 	common "ocm.software/ocm/api/utils/misc"
 	"ocm.software/ocm/api/utils/runtime"
 )
@@ -42,7 +41,7 @@ type (
 	Reference       = crossref.Reference
 	References      = crossref.References
 
-	Origin = common2.Origin
+	Origin = identity.Origin
 )
 
 func NewDescriptionContext(name, vers string, desc *ServiceModelDescriptor) DescriptionContext {
@@ -65,19 +64,19 @@ func AddServiceModelReferences(refs *CrossReferences, services []ServiceDescript
 	internal.AddServiceModelReferences(refs, services, os...)
 }
 
-func NewNewOCMOrigin(comp, vers string, res v1.Identity) Origin {
-	return common2.NewOCMOrigin(common.NewNameVersion(comp, vers), res)
+func NewNewOCMOrigin(comp, vers string, res ocmmeta.Identity) Origin {
+	return identity.NewOCMOrigin(common.NewNameVersion(comp, vers), res)
 }
 
-func NewNewOCMOriginFor(nv common.VersionedElement, res v1.Identity) Origin {
-	return common2.NewOCMOrigin(nv, res)
+func NewNewOCMOriginFor(nv common.VersionedElement, res ocmmeta.Identity) Origin {
+	return identity.NewOCMOrigin(nv, res)
 }
 
 type Resolver interface {
-	LookupServiceVersionVariant(id metav1.ServiceVersionVariantIdentity) (*ServiceDescriptor, error)
+	LookupServiceVersionVariant(id identity.ServiceVersionVariantIdentity) (*ServiceDescriptor, error)
 }
 
 type VersionResolver interface {
 	Resolver
-	ListVersions(id metav1.ServiceIdentity, variant ...metav1.Variant) ([]string, error)
+	ListVersions(id identity.ServiceIdentity, variant ...identity.Variant) ([]string, error)
 }

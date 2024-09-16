@@ -4,6 +4,7 @@ import (
 	"maps"
 	"slices"
 
+	"github.com/open-component-model/service-model/api/identity"
 	"github.com/open-component-model/service-model/api/utils"
 )
 
@@ -19,11 +20,11 @@ const (
 type ManagedServices = utils.CopyableList[ManagedService]
 
 type ManagedService struct {
-	Service               ServiceIdentity       `json:"service"`
-	Variant               Variant               `json:"variant,omitempty"`
-	Versions              []string              `json:"versions,omitempty"`
-	Labels                Labels                `json:"labels,omitempty"`
-	DependencyResolutions DependencyResolutions `json:"dependencyResolutions,omitempty"`
+	Service               identity.ServiceIdentity `json:"service"`
+	Variant               identity.Variant         `json:"variant,omitempty"`
+	Versions              []string                 `json:"versions,omitempty"`
+	Labels                Labels                   `json:"labels,omitempty"`
+	DependencyResolutions DependencyResolutions    `json:"dependencyResolutions,omitempty"`
 }
 
 func (s ManagedService) Copy() *ManagedService {

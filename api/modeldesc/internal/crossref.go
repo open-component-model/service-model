@@ -1,24 +1,24 @@
 package internal
 
 import (
-	"github.com/open-component-model/service-model/api/common"
 	"github.com/open-component-model/service-model/api/crossref"
-	v1 "github.com/open-component-model/service-model/api/meta/v1"
+	"github.com/open-component-model/service-model/api/identity"
+	metav1 "github.com/open-component-model/service-model/api/meta/v1"
 )
 
-func addReferences(c *crossref.CrossReferences, holder *crossref.ServiceVersionIdentity, variant v1.Variant, refs crossref.References) {
+func addReferences(c *crossref.CrossReferences, holder identity.ServiceVersionIdentity, variant identity.Variant, refs crossref.References) {
 	for _, r := range refs {
-		c.AddRef(holder, variant, &r.Id, r.Kind)
+		c.AddRef(holder, variant, r.Id, r.Kind)
 	}
 }
 
-func ServiceModelReferences(d *ServiceModelDescriptor, os ...common.Origin) *crossref.CrossReferences {
+func ServiceModelReferences(d *ServiceModelDescriptor, os ...identity.Origin) *crossref.CrossReferences {
 	refs := crossref.NewCrossReferences()
 	AddServiceModelReferences(refs, d.Services, os...)
 	return refs
 }
 
-func AddServiceModelReferences(refs *crossref.CrossReferences, services []ServiceDescriptor, os ...common.Origin) {
+func AddServiceModelReferences(refs *crossref.CrossReferences, services []ServiceDescriptor, os ...identity.Origin) {
 	for _, e := range services {
 		desc := e.Copy()
 		refs.AddService(crossref.NewServiceVersionIdentity(e.Service, e.Version), e.Kind.GetVariant(), desc, os...)
@@ -28,7 +28,7 @@ func AddServiceModelReferences(refs *crossref.CrossReferences, services []Servic
 
 func ServiceReferences(e *ServiceDescriptor) *crossref.CrossReferences {
 	refs := crossref.NewCrossReferences()
-	holder := crossref.NewServiceVersionIdentity(e.Service, e.Version)
+	holder := identity.NewServiceVersionId(e.Service, e.Version)
 
 	addReferences(refs, holder, e.Kind.GetVariant(), CommonReferences(&e.CommonServiceSpec))
 	addReferences(refs, holder, e.Kind.GetVariant(), e.Kind.GetReferences())
@@ -39,7 +39,7 @@ func CommonReferences(s *CommonServiceSpec) crossref.References {
 	return nil
 }
 
-func CommonServiceImplementationReferences(s *v1.CommonServiceImplementationSpec) crossref.References {
+func CommonServiceImplementationReferences(s *metav1.CommonServiceImplementationSpec) crossref.References {
 	var refs crossref.References
 
 	for _, e := range s.Dependencies {
@@ -51,7 +51,7 @@ func CommonServiceImplementationReferences(s *v1.CommonServiceImplementationSpec
 	return refs
 }
 
-func CommonConsumerServiceImplementationReferences(s *v1.CommonConsumerServiceImplementationSpec) crossref.References {
+func CommonConsumerServiceImplementationReferences(s *metav1.CommonConsumerServiceImplementationSpec) crossref.References {
 	var refs crossref.References
 	refs.Add(CommonServiceImplementationReferences(&s.CommonServiceImplementationSpec)...)
 	for _, e := range s.Installers {
@@ -60,7 +60,7 @@ func CommonConsumerServiceImplementationReferences(s *v1.CommonConsumerServiceIm
 	return refs
 }
 
-func DependencyReferences(s *v1.Dependency) crossref.References {
+func DependencyReferences(s *metav1.Dependency) crossref.References {
 	var refs crossref.References
 
 	crossref.AddVersionReferences(&refs, s.Service, s.Variant, crossref.DEP_DEPENDENCY, s.VersionConstraints...)
@@ -70,32 +70,32 @@ func DependencyReferences(s *v1.Dependency) crossref.References {
 	return refs
 }
 
-func ContractReferences(s *v1.Contract) crossref.References {
+func ContractReferences(s *metav1.Contract) crossref.References {
 	var refs crossref.References
 	refs.Add(*crossref.NewReference(s.Service, s.Version, nil, crossref.DEP_MEET))
 	return refs
 }
 
-func ServiceInstanceReferences(s *v1.ServiceInstance) crossref.References {
+func ServiceInstanceReferences(s *metav1.ServiceInstance) crossref.References {
 	var refs crossref.References
 	crossref.AddVersionReferences(&refs, s.Service, s.Variant, crossref.DEP_DESCRIPTION, s.Versions...)
 	return refs
 }
 
-func InstallerReferences(s *v1.Installer) crossref.References {
+func InstallerReferences(s *metav1.Installer) crossref.References {
 	var refs crossref.References
 
 	refs.Add(*crossref.NewReference(s.Service, s.Version, nil, crossref.DEP_INSTALLER))
 	return refs
 }
 
-func ManagedServiceReferences(s *v1.ManagedService) crossref.References {
+func ManagedServiceReferences(s *metav1.ManagedService) crossref.References {
 	var refs crossref.References
 	crossref.AddVersionReferences(&refs, s.Service, s.Variant, crossref.DEP_DESCRIPTION, s.Versions...)
 	return refs
 }
 
-func DependencyResolutionReferences(s *v1.DependencyResolution) crossref.References {
+func DependencyResolutionReferences(s *metav1.DependencyResolution) crossref.References {
 	var refs crossref.References
 	return refs
 }

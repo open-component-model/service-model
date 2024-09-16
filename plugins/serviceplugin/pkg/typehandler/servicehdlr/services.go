@@ -1,11 +1,11 @@
-package typehandler
+package servicehdlr
 
 import (
 	"fmt"
 
 	"github.com/mandelsoft/goutils/optionutils"
 	"github.com/mandelsoft/goutils/sliceutils"
-	v1 "github.com/open-component-model/service-model/api/meta/v1"
+	"github.com/open-component-model/service-model/api/identity"
 	"github.com/open-component-model/service-model/api/modeldesc"
 	modelocm "github.com/open-component-model/service-model/api/ocm"
 	"ocm.software/ocm/api/ocm"
@@ -36,14 +36,14 @@ func (t *Services) All() ([]output.Object, error) {
 }
 
 func (t *Services) Get(name utils.ElemSpec) ([]output.Object, error) {
-	var id v1.ServiceVersionVariantIdentity
+	var id identity.ServiceVersionVariantIdentity
 	err := id.Parse(name.String())
 	if err != nil {
 		return nil, err
 	}
 
-	if id.Version == "" {
-		versions, err := t.resolver.ListVersions(id.ServiceIdentity, id.Variant)
+	if id.Version() == "" {
+		versions, err := t.resolver.ListVersions(id.ServiceIdentity(), id.Variant())
 		if err != nil {
 			return nil, err
 		}
@@ -55,7 +55,7 @@ func (t *Services) Get(name utils.ElemSpec) ([]output.Object, error) {
 
 		var result []output.Object
 		for _, v := range versions {
-			l, err := t.get(v1.NewServiceVersionVariantIdentity(id.ServiceIdentity, v, id.Variant))
+			l, err := t.get(identity.NewServiceVersionVariantIdentity(id.ServiceIdentity(), v, id.Variant()))
 			if err != nil {
 				return nil, err
 			}
@@ -66,7 +66,7 @@ func (t *Services) Get(name utils.ElemSpec) ([]output.Object, error) {
 	return t.get(id)
 }
 
-func (t *Services) get(id v1.ServiceVersionVariantIdentity) ([]output.Object, error) {
+func (t *Services) get(id identity.ServiceVersionVariantIdentity) ([]output.Object, error) {
 	s, err := t.resolver.LookupServiceVersionVariant(id)
 	if err != nil {
 		return nil, err

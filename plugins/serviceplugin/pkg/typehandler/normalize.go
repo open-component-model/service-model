@@ -1,4 +1,4 @@
-package typehdlrutils
+package typehandler
 
 import (
 	"github.com/mandelsoft/goutils/set"
