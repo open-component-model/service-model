@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/mandelsoft/goutils/optionutils"
-	"github.com/mandelsoft/goutils/sliceutils"
 	"github.com/open-component-model/service-model/api/identity"
 	"github.com/open-component-model/service-model/api/modeldesc"
 	modelocm "github.com/open-component-model/service-model/api/ocm"
@@ -71,7 +70,22 @@ func (t *Services) get(id identity.ServiceVersionVariantIdentity) ([]output.Obje
 	if err != nil {
 		return nil, err
 	}
-	return sliceutils.AsSlice(output.Object(NewObject(nil, s))), nil
+	obj := NewObject(nil, s)
+	if t.opts.state != nil {
+		t.opts.state.Add(obj.Element)
+	}
+	var result []output.Object
+	t.Add(&result, obj)
+	return result, nil
+}
+
+func (t *Services) Add(list *[]output.Object, objs ...*Object) {
+	for _, o := range objs {
+		if t.opts.state != nil && o.Element != nil {
+			t.opts.state.Add(o.Element)
+		}
+		*list = append(*list, o)
+	}
 }
 
 func (t *Services) FilterVersions(vers []string) ([]string, error) {

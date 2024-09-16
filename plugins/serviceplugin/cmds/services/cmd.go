@@ -41,6 +41,7 @@ func New() *cobra.Command {
 			output.OutputOptions(outputs,
 				closureoption.New("service", options.Not(output.Selected("tree"))),
 				lookupoption.New(),
+				servicehdlr.NewState(nil),
 			),
 		},
 	}
@@ -96,6 +97,8 @@ func (c *command) Run(cmd *cobra.Command, args []string) error {
 		resolver = r.(resolvers.ComponentResolver)
 	}
 
+	hopts := servicehdlr.OptionsFor(c)
+
 	if c.useComps {
 		var comps []string
 		for _, a := range args {
@@ -105,18 +108,26 @@ func (c *command) Run(cmd *cobra.Command, args []string) error {
 				mainargs = append(mainargs, a)
 			}
 		}
-		h, err = servicehdlr.ForComponents(NewOCM(ctx), resolver, output.From(c), repo, session, comps, servicehdlr.OptionsFor(c))
+		h, err = servicehdlr.ForComponents(NewOCM(ctx), resolver, output.From(c), repo, session, comps, hopts)
 		if err != nil {
 			return err
 		}
 	} else {
 		mainargs = args
-		h = servicehdlr.ForServices(resolver, servicehdlr.OptionsFor(c))
+		h = servicehdlr.ForServices(resolver, hopts)
 	}
 
-	oopts.OptionSet = append(oopts.OptionSet, servicehdlr.NewState(ocmdesc.NewServiceResolver(resolvers.ComponentVersionResolverForComponentResolver(resolver))))
-
-	return utils.HandleArgs(oopts, h, mainargs...)
+	state := servicehdlr.From(c)
+	state.Resolver = ocmdesc.NewServiceResolver(resolvers.ComponentVersionResolverForComponentResolver(resolver))
+	err = state.Load()
+	if err != nil {
+		return err
+	}
+	err = utils.HandleArgs(oopts, h, mainargs...)
+	if err != nil {
+		return err
+	}
+	return state.Save()
 }
 
 func TableOutput(opts *output.Options, mapping processing.MappingFunction, wide ...string) *output.TableOutput {

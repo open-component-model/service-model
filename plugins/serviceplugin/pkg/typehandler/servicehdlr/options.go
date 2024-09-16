@@ -20,6 +20,8 @@ type Option interface {
 type Options struct {
 	forceEmpty bool
 
+	state *State
+
 	constraints []*semver.Constraints
 	latestOnly  *bool
 	resolver    resolvers.ComponentVersionResolver
@@ -58,6 +60,9 @@ func OptionsFor(o options.OptionSetProvider) OptionList {
 	}
 	if lookup := lookupoption.From(o); lookup != nil {
 		hopts = append(hopts, Resolver(lookup))
+	}
+	if state := From(o); state != nil {
+		hopts = append(hopts, state)
 	}
 	return hopts
 }

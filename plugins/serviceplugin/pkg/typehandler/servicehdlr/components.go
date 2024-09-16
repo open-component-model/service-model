@@ -55,7 +55,7 @@ func (t *Components) All() ([]output.Object, error) {
 			return nil, err
 		}
 		for _, s := range m.Services {
-			result = append(result, output.Object(NewObject(nil, generics.Pointer(s))))
+			t.Add(&result, NewObject(nil, generics.Pointer(s)))
 		}
 	}
 	return result, nil
