@@ -91,13 +91,11 @@ func (o *FileDB) LookupServiceVersionVariant(id identity.ServiceVersionVariantId
 
 func (o *FileDB) ListVersions(id identity.ServiceIdentity, variant ...identity.Variant) ([]string, error) {
 	o.lock.Lock()
-	o.lock.Lock()
 	defer o.lock.Unlock()
 
 	var vari = utils.Optional(variant...)
 	var result []string
 	for _, s := range o.database.Services {
-
 		if !vari.Equals(s.GetVariant()) {
 			continue
 		}

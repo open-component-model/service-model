@@ -27,9 +27,10 @@ type State struct {
 
 	Resolver modeldesc.Resolver
 
-	Path       string
-	Filesystem vfs.FileSystem
-	Database   *filedb.FileDB
+	UpdatePath   string
+	DatabasePath string
+	Filesystem   vfs.FileSystem
+	Database     *filedb.FileDB
 }
 
 var _ Option = (*State)(nil)
@@ -39,7 +40,8 @@ func (o *State) ApplyToServiceHandlerOptions(opts *Options) {
 }
 
 func (o *State) AddFlags(fs *pflag.FlagSet) {
-	fs.StringVarP(&o.Path, "database", "D", "", "update service database file")
+	fs.StringVarP(&o.UpdatePath, "update", "U", "", "update service database file")
+	fs.StringVarP(&o.DatabasePath, "database", "D", "", "examine database file")
 }
 
 func (o *State) Configure(ctx cli.Context) error {
@@ -47,8 +49,8 @@ func (o *State) Configure(ctx cli.Context) error {
 		o.Filesystem = vfsattr.Get(ctx)
 	}
 
-	if o.Path != "" {
-		o.Database = filedb.New(o.Path, o.Filesystem)
+	if o.UpdatePath != "" {
+		o.Database = filedb.New(o.UpdatePath, o.Filesystem)
 		return o.Database.Load()
 	}
 	return nil

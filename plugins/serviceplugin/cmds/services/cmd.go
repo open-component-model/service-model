@@ -4,15 +4,19 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/open-component-model/service-model/api/filedb"
+	"github.com/open-component-model/service-model/api/modeldesc"
+	ocmdesc "github.com/open-component-model/service-model/api/ocm"
 	"github.com/open-component-model/service-model/plugins/serviceplugin/pkg/typehandler"
 	"github.com/open-component-model/service-model/plugins/serviceplugin/pkg/typehandler/servicehdlr"
+	"ocm.software/ocm/api/datacontext/attrs/vfsattr"
+
 	// bind OCM configuration.
 	_ "ocm.software/ocm/api/ocm/plugin/ppi/config"
 
 	"github.com/mandelsoft/goutils/general"
 	"github.com/mandelsoft/goutils/sliceutils"
 	"github.com/mandelsoft/logging"
-	ocmdesc "github.com/open-component-model/service-model/api/ocm"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"ocm.software/ocm/api/cli"
@@ -85,21 +89,29 @@ func (c *command) Run(cmd *cobra.Command, args []string) error {
 	var h utils.TypeHandler
 
 	var resolver resolvers.ComponentResolver
+	var svcresolver modeldesc.Resolver
 
 	repo := repooption.From(c).Repository
 	if repo != nil {
 		resolver = resolvers.ComponentResolverForRepository(repo)
 	} else {
 		r := ctx.GetResolver()
-		if r == nil {
-			return fmt.Errorf("no component resolver configured")
+		if r != nil {
+			resolver = r.(resolvers.ComponentResolver)
 		}
-		resolver = r.(resolvers.ComponentResolver)
 	}
 
 	hopts := servicehdlr.OptionsFor(c)
+	state := servicehdlr.From(c)
 
 	if c.useComps {
+		if state.DatabasePath != "" {
+			return fmt.Errorf("either database or component mode possible, only")
+		}
+		if resolver == nil {
+			return fmt.Errorf("no component resolver configured")
+		}
+
 		var comps []string
 		for _, a := range args {
 			if strings.Index(a, "/") >= 0 {
@@ -114,11 +126,27 @@ func (c *command) Run(cmd *cobra.Command, args []string) error {
 		}
 	} else {
 		mainargs = args
-		h = servicehdlr.ForServices(resolver, hopts)
+		if state.DatabasePath != "" {
+			db := filedb.New(state.DatabasePath, vfsattr.Get(ctx))
+			err := db.Load()
+			if err != nil {
+				return err
+			}
+			svcresolver = db
+			h = servicehdlr.ForVersionResolver(db, hopts)
+		} else {
+			if resolver == nil {
+				return fmt.Errorf("no component resolver configured")
+			}
+			h = servicehdlr.ForServices(resolver, hopts)
+		}
 	}
 
-	state := servicehdlr.From(c)
-	state.Resolver = ocmdesc.NewServiceResolver(resolvers.ComponentVersionResolverForComponentResolver(resolver))
+	if svcresolver == nil {
+		svcresolver = ocmdesc.NewServiceResolver(resolvers.ComponentVersionResolverForComponentResolver(resolver))
+	}
+
+	state.Resolver = svcresolver
 	err = utils.HandleArgs(oopts, h, mainargs...)
 	if err != nil {
 		return err
