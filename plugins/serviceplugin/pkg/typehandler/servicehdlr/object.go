@@ -23,9 +23,18 @@ func Elem(e interface{}) *modeldesc.ServiceDescriptor {
 
 type Objects = typehandler.Objects[*Object]
 
+type Id struct {
+	Component string `json:"component"`
+	Name      string `json:"name"`
+}
 type Manifest struct {
-	History common.History  `json:"context,omitempty"`
-	Element json.RawMessage `json:"element"`
+	History common.History `json:"context,omitempty"`
+	Element interface{}    `json:"element,omitempty"`
+
+	Service identity.ServiceIdentity `json:"service"`
+	Version string                   `json:"version"`
+	Variant identity.Variant         `json:"variant,omitempty"`
+	Error   error                    `json:"error,omitempty"`
 }
 
 type Object struct {
@@ -98,14 +107,23 @@ var (
 )
 
 func (o *Object) AsManifest() interface{} {
-	desc := &modeldesc.ServiceModelDescriptor{
-		DocType:  runtime.NewVersionedObjectType(modeldesc.ABS_TYPE + "/v1"),
-		Services: sliceutils.AsSlice(*o.Element),
+	var data interface{}
+
+	if o.Element != nil {
+		desc := &modeldesc.ServiceModelDescriptor{
+			DocType:  runtime.NewVersionedObjectType(modeldesc.ABS_TYPE + "/v1"),
+			Services: sliceutils.AsSlice(*o.Element),
+		}
+		d, _ := modeldesc.Encode(desc, runtime.DefaultJSONEncoding)
+		data = json.RawMessage(d)
 	}
-	data, _ := modeldesc.Encode(desc, runtime.DefaultJSONEncoding)
 	return &Manifest{
 		History: o.History,
 		Element: data,
+		Error:   o.Error,
+		Service: o.Id.ServiceIdentity(),
+		Version: o.Id.Version(),
+		Variant: o.Id.Variant(),
 	}
 }
 

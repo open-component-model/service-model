@@ -172,6 +172,8 @@ var _ = Describe("Handler Test Environment", func() {
       type: ServiceProvider
       version: v1.0.0
     type: serviceModelDescription/v1
+  service: acme.org/gardener/service/provider
+  version: v1.0.0
   ---
   element:
     services:
@@ -189,6 +191,8 @@ var _ = Describe("Handler Test Environment", func() {
       versions:
       - v1.0.0
     type: serviceModelDescription/v1
+  service: acme.org/gardener/service/installer
+  version: v1.0.0
 `, 2)))
 		})
 
