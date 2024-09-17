@@ -1,0 +1,113 @@
+
+components:
+#
+# Kubernetes
+#
+- name: acme.org/kubernetes/apis
+  version: v1.22.0
+  provider:
+    name: acme.org
+  resources:
+  - name: servicemodel
+    type: serviceModelDescription
+    input:
+      type: file
+      path: ../../examples/descriptors/ContractK8sCluster22.yaml
+      mediaType: application/x-yaml
+- name: acme.org/kubernetes/apis
+  version: v1.23.0
+  provider:
+    name: acme.org
+  resources:
+    - name: servicemodel
+      type: serviceModelDescription
+      input:
+        type: file
+        path: ../../examples/descriptors/ContractK8sCluster23.yaml
+        mediaType: application/x-yaml
+
+#
+# Gardener
+#
+- name: acme.org/gardener/service
+  version: v1.0.0
+  provider:
+    name: acme.org
+  resources:
+  - name: servicemodel
+    type: serviceModelDescription
+    input:
+      type: file
+      path: ../../examples/descriptors/MSPGardener.yaml
+      mediaType: application/x-yaml
+  - name: installer
+    type: someInstaller
+    input:
+      type: utf8
+      mediaType: application/x-yaml
+      yaml: some gardener installer descriptor
+
+- name: acme.org/gardener/apis
+  version: v1.22.0
+  provider:
+    name: acme.org
+  resources:
+    - name: servicemodel
+      type: serviceModelDescription
+      input:
+        type: file
+        path: ../../examples/descriptors/SvcGardenCluster22.yaml
+        mediaType: application/x-yaml
+- name: acme.org/gardener/apis
+  version: v1.23.0
+  provider:
+    name: acme.org
+  resources:
+    - name: servicemodel
+      type: serviceModelDescription
+      input:
+        type: file
+        path: ../../examples/descriptors/SvcGardenCluster23.yaml
+        mediaType: application/x-yaml
+
+#
+# Hana
+#
+- name: acme.org/hana/service
+  version: v1.0.0
+  provider:
+    name: acme.org
+  resources:
+    - name: servicemodel
+      type: serviceModelDescription
+      input:
+        type: file
+        path: ../../examples/descriptors/MSPHana.yaml
+        mediaType: application/x-yaml
+    - name: installer
+      type: someInstaller
+      input:
+        type: utf8
+        mediaType: application/x-yaml
+        yaml: some hana installer descriptor
+
+#
+# Steampunk
+#
+- name: acme.org/steampunk/service
+  version: v1.0.0
+  provider:
+    name: acme.org
+  resources:
+    - name: servicemodel
+      type: serviceModelDescription
+      input:
+        type: file
+        path: ../../examples/descriptors/MSPSteampunk.yaml
+        mediaType: application/x-yaml
+    - name: installer
+      type: someInstaller
+      input:
+        type: utf8
+        mediaType: application/x-yaml
+        yaml: some steampunk installer descriptor

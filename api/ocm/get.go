@@ -40,11 +40,11 @@ func GetServiceModelFromCV(cv ocm.ComponentVersionAccess, resolver ...ocm.Compon
 			}
 			data, err := ocmutils.GetResourceData(res)
 			if err != nil {
-				return nil, nil, err
+				return nil, nil, errors.Wrapf(err, "resource %d[%s]", i, r.Name)
 			}
 			desc, err := modeldesc.Decode(data)
 			if err != nil {
-				return nil, nil, err
+				return nil, nil, errors.Wrapf(err, "resource %d[%s]", i, r.Name)
 			}
 			if desc.DocType.GetKind() != modeldesc.REL_TYPE {
 				return nil, nil, errors.ErrInvalid(modeldesc.KIND_DESCRIPTORFORMAT, desc.DocType.GetKind())

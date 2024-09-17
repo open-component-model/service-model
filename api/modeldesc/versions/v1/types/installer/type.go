@@ -30,7 +30,7 @@ type Converter struct{}
 func (c Converter) ConvertFrom(object modeldesc.ServiceKindSpec) (vpi.ServiceKindSpec, error) {
 	in := object.(*me.ServiceSpec)
 	return &ServiceSpec{
-		CommonServiceImplementationSpec: *in.Copy(),
+		CommonServiceImplementationSpec: *in.CommonServiceImplementationSpec.Copy(),
 		TargetEnvironment:               in.TargetEnvironment.Copy(),
 		InstalledService:                in.InstalledService,
 		Versions:                        slices.Clone(in.Versions),
@@ -42,7 +42,7 @@ func (c Converter) ConvertFrom(object modeldesc.ServiceKindSpec) (vpi.ServiceKin
 func (c Converter) ConvertTo(object vpi.ServiceKindSpec) (modeldesc.ServiceKindSpec, error) {
 	in := object.(*ServiceSpec)
 	return &me.ServiceSpec{
-		CommonServiceImplementationSpec: *in.Copy(),
+		CommonServiceImplementationSpec: *in.CommonServiceImplementationSpec.Copy(),
 		TargetEnvironment:               in.TargetEnvironment.Copy(),
 		InstalledService:                in.InstalledService,
 		Versions:                        slices.Clone(in.Versions),

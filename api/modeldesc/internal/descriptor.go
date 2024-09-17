@@ -30,6 +30,7 @@ type ServiceKindSpec interface {
 	GetVariant() identity.Variant
 	GetDependencies() []metav1.Dependency
 
+	Copy() ServiceKindSpec
 	ToCanonicalForm(c DescriptionContext) ServiceKindSpec
 	Validate(c DescriptionContext) error
 	GetReferences() crossref.References
@@ -43,6 +44,18 @@ type ServiceDescriptor struct {
 
 func (d *ServiceDescriptor) GetId() identity.ServiceVersionVariantIdentity {
 	return identity.NewServiceVersionVariantIdentityFor(d.CommonServiceSpec.GetId(), d.Kind.GetVariant())
+}
+
+func (d *ServiceDescriptor) GetVariant() identity.Variant {
+	return d.Kind.GetVariant()
+}
+
+func (d *ServiceDescriptor) Copy() *ServiceDescriptor {
+	return &ServiceDescriptor{
+		CommonServiceSpec: *d.CommonServiceSpec.Copy(),
+		Kind:              d.Kind.Copy(),
+		Origin:            d.Origin.Copy(),
+	}
 }
 
 type ServiceModelDescriptor struct {

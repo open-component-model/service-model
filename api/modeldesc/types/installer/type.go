@@ -2,6 +2,7 @@ package installer
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/mandelsoft/goutils/errors"
 	"github.com/open-component-model/service-model/api/crossref"
@@ -21,6 +22,17 @@ type ServiceSpec struct {
 	Versions          []string                 `json:"versions,omitempty"`
 	InstallerResource metav1.ResourceReference `json:"installerResource"`
 	InstallerType     string                   `json:"installerType"`
+}
+
+func (s *ServiceSpec) Copy() internal.ServiceKindSpec {
+	return &ServiceSpec{
+		CommonServiceImplementationSpec: *s.CommonServiceImplementationSpec.Copy(),
+		TargetEnvironment:               s.TargetEnvironment.Copy(),
+		InstalledService:                s.InstalledService,
+		Versions:                        slices.Clone(s.Versions),
+		InstallerResource:               *s.InstallerResource.Copy(),
+		InstallerType:                   s.InstallerType,
+	}
 }
 
 func (s *ServiceSpec) ToCanonicalForm(c internal.DescriptionContext) internal.ServiceKindSpec {

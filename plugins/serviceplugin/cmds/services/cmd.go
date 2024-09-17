@@ -119,10 +119,6 @@ func (c *command) Run(cmd *cobra.Command, args []string) error {
 
 	state := servicehdlr.From(c)
 	state.Resolver = ocmdesc.NewServiceResolver(resolvers.ComponentVersionResolverForComponentResolver(resolver))
-	err = state.Load()
-	if err != nil {
-		return err
-	}
 	err = utils.HandleArgs(oopts, h, mainargs...)
 	if err != nil {
 		return err

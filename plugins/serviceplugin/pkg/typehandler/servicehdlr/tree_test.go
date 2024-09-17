@@ -3,6 +3,7 @@ package servicehdlr_test
 import (
 	"bytes"
 
+	"github.com/mandelsoft/goutils/generics"
 	. "github.com/mandelsoft/goutils/testutils"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -75,6 +76,10 @@ func (k *Kind) GetVariant() identity.Variant {
 
 func (k *Kind) GetDependencies() []metav1.Dependency {
 	return nil
+}
+
+func (k *Kind) Copy() modeldesc.ServiceKindSpec {
+	return generics.Pointer(*k)
 }
 
 func (k *Kind) ToCanonicalForm(c modeldesc.DescriptionContext) modeldesc.ServiceKindSpec {

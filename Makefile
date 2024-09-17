@@ -29,8 +29,13 @@ BUILD_FLAGS := "-s -w \
  -X github.com/open-component-model/service-model/api/version.buildDate=$(NOW)"
 
 
+
 .PHONY: build
-build: $(GEN)/.exists $(GEN)/$(NAME)/$(NAME)
+build:
+	go build ./...
+
+.PHONY: plugin
+plugin: $(GEN)/.exists $(GEN)/$(NAME)/$(NAME)
 
 gen/serviceplugin/serviceplugin:
 	echo doit
@@ -44,7 +49,9 @@ test:
 	go test -count=1 ./...
 
 .PHONY: install
-install: $(GEN)/$(NAME)/$(NAME)
+install: $(PLUGINTARGET)/$(NAME)
+
+$(PLUGINTARGET)/$(NAME): $(GEN)/$(NAME)/$(NAME)
 	cp $(GEN)/$(NAME)/$(NAME) "$(PLUGINTARGET)"
 
 .PHONY: ctf
@@ -58,6 +65,10 @@ version:
 .PHONY: push
 push:
 	cd components/serviceplugin; make push
+
+.PHONY: examples
+examples:
+	cd components/examples; make ctf
 
 $(GEN)/.exists:
 	@mkdir -p $(GEN)

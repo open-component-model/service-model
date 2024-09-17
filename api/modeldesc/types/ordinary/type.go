@@ -12,6 +12,12 @@ type ServiceSpec struct {
 	metav1.CommonConsumerServiceImplementationSpec
 }
 
+func (s *ServiceSpec) Copy() internal.ServiceKindSpec {
+	return &ServiceSpec{
+		CommonConsumerServiceImplementationSpec: *s.CommonConsumerServiceImplementationSpec.Copy(),
+	}
+}
+
 func (s *ServiceSpec) ToCanonicalForm(c internal.DescriptionContext) internal.ServiceKindSpec {
 	return &ServiceSpec{*internal.CommonConsumerServiceImplementationSpecToCanonicalForm(&s.CommonConsumerServiceImplementationSpec, c)}
 }

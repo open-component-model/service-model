@@ -89,11 +89,11 @@ info:
 
 .PHONY: describe
 describe: $(GEN)/ctf
-	ocm get resources --lookup $(OCMREPO) -c -o treewide $(GEN)/ctf
+	$(OCM) get resources --lookup $(OCMREPO) -c -o treewide $(GEN)/ctf
 
 .PHONY: descriptor
 descriptor: $(GEN)/ctf
-	ocm get component -S v3alpha1 -o yaml $(GEN)/ctf
+	$(OCM) get component -S v3alpha1 -o yaml $(GEN)/ctf
 
 .PHONY: clean
 clean:

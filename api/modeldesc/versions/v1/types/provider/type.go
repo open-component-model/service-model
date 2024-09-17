@@ -22,10 +22,10 @@ type Converter struct{}
 
 func (c Converter) ConvertFrom(object modeldesc.ServiceKindSpec) (vpi.ServiceKindSpec, error) {
 	in := object.(*me.ServiceSpec)
-	return &ServiceSpec{*in.Copy(), in.ManagedServices.Copy()}, nil
+	return &ServiceSpec{*in.CommonConsumerServiceImplementationSpec.Copy(), in.ManagedServices.Copy()}, nil
 }
 
 func (c Converter) ConvertTo(object vpi.ServiceKindSpec) (modeldesc.ServiceKindSpec, error) {
 	in := object.(*ServiceSpec)
-	return &me.ServiceSpec{*in.Copy(), in.ManagedServices.Copy()}, nil
+	return &me.ServiceSpec{*in.CommonConsumerServiceImplementationSpec.Copy(), in.ManagedServices.Copy()}, nil
 }

@@ -16,6 +16,13 @@ type ServiceSpec struct {
 	ManagedServices metav1.ManagedServices `json:"managedServices"`
 }
 
+func (s *ServiceSpec) Copy() internal.ServiceKindSpec {
+	return &ServiceSpec{
+		CommonConsumerServiceImplementationSpec: *s.CommonConsumerServiceImplementationSpec.Copy(),
+		ManagedServices:                         s.ManagedServices.Copy(),
+	}
+}
+
 func (s *ServiceSpec) ToCanonicalForm(c internal.DescriptionContext) internal.ServiceKindSpec {
 	r := &ServiceSpec{
 		CommonConsumerServiceImplementationSpec: *internal.CommonConsumerServiceImplementationSpecToCanonicalForm(&s.CommonConsumerServiceImplementationSpec, c),
