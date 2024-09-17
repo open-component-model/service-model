@@ -18,14 +18,15 @@ func From(o options.OptionSetProvider) *State {
 	return opt
 }
 
-func NewState(r modeldesc.Resolver) *State {
+func NewState(r modeldesc.VersionResolver) *State {
 	return &State{Resolver: r}
 }
 
 type State struct {
 	lock sync.Mutex
 
-	Resolver modeldesc.Resolver
+	Resolver        modeldesc.VersionResolver
+	ResolveToLatest bool
 
 	UpdatePath   string
 	DatabasePath string
@@ -35,6 +36,11 @@ type State struct {
 
 var _ Option = (*State)(nil)
 
+func (o *State) WithLatestResolution() *State {
+	o.ResolveToLatest = true
+	return o
+}
+
 func (o *State) ApplyToServiceHandlerOptions(opts *Options) {
 	opts.state = o
 }
@@ -42,6 +48,7 @@ func (o *State) ApplyToServiceHandlerOptions(opts *Options) {
 func (o *State) AddFlags(fs *pflag.FlagSet) {
 	fs.StringVarP(&o.UpdatePath, "update", "U", "", "update service database file")
 	fs.StringVarP(&o.DatabasePath, "database", "D", "", "examine database file")
+	fs.BoolVarP(&o.ResolveToLatest, "constraintsToLatest", "R", false, "resolve version constraints to latest")
 }
 
 func (o *State) Configure(ctx cli.Context) error {

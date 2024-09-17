@@ -89,7 +89,7 @@ func (c *command) Run(cmd *cobra.Command, args []string) error {
 	var h utils.TypeHandler
 
 	var resolver resolvers.ComponentResolver
-	var svcresolver modeldesc.Resolver
+	var svcresolver modeldesc.VersionResolver
 
 	repo := repooption.From(c).Repository
 	if repo != nil {
@@ -143,7 +143,7 @@ func (c *command) Run(cmd *cobra.Command, args []string) error {
 	}
 
 	if svcresolver == nil {
-		svcresolver = ocmdesc.NewServiceResolver(resolvers.ComponentVersionResolverForComponentResolver(resolver))
+		svcresolver = ocmdesc.NewVersionResolver(resolver)
 	}
 
 	state.Resolver = svcresolver
@@ -192,6 +192,9 @@ func mapGetRegularOutput(e interface{}) interface{} {
 		err := ""
 		if obj.Error != nil {
 			err = obj.Error.Error()
+		}
+		if obj.Resolved != "" {
+			err = "(resolved to " + obj.Resolved + ")"
 		}
 		return sliceutils.AsSlice(obj.Id.Component(), obj.Id.Name(), obj.Id.Version(), obj.Id.Variant().String(), "", err)
 	}

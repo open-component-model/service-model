@@ -52,6 +52,15 @@ var _ = Describe("cliplugin", func() {
 						env.BlobStringData(mime.MIME_TEXT, "some installer description")
 					})
 				})
+
+				env.ComponentVersion(COMP_MSP_HANA, VERS_MSP_HANA, func() {
+					env.Resource("service", VERS_MSP_HANA, ocmdesc.RESOURCE_TYPE, ocmmeta.LocalRelation, func() {
+						env.BlobStringData(mime.MIME_YAML, MSPHana)
+					})
+					env.Resource("installer", VERS_MSP_HANA, artifacttypes.PLAIN_TEXT, ocmmeta.LocalRelation, func() {
+						env.BlobStringData(mime.MIME_TEXT, "some installer description")
+					})
+				})
 			})
 		})
 
@@ -84,6 +93,24 @@ var _ = Describe("cliplugin", func() {
 `, 2)))
 		})
 
+		It("run plugin based ocm command with closure and constraint resolution", func() {
+			var buf bytes.Buffer
+
+			MustBeSuccessful(env.CatchOutput(&buf).Execute("get", "services", "-rR", "--repo", basepath+"/"+ARCH, COMP_MSP_HANA+"/provider"))
+
+			Expect(buf.String()).To(StringEqualTrimmedWithContext(mutils.Crop(`
+  REFERENCEPATH                                                                                                            COMPONENT                 NAME      VERSION VARIANT KIND                SHORTNAME
+                                                                                                                           acme.org/hana/service     provider  v1.0.0          ServiceProvider     Hana as a Service
+  acme.org/hana/service/provider:v1.0.0                                                                                    acme.org/gardener/service provider  v1.x.x                              (resolved to v1.0.0)
+  acme.org/hana/service/provider:v1.0.0                                                                                    acme.org/gardener/service provider  v1.0.0          ServiceProvider     Gardener Kubernetes as a Service Management
+  acme.org/hana/service/provider:v1.0.0->acme.org/gardener/service/provider:v1.0.0                                         acme.org/gardener/service installer v1.0.0          InstallationService Installer for Gardener
+  acme.org/hana/service/provider:v1.0.0                                                                                    acme.org/hana/service     installer v1.0.0          InstallationService Installer for HaaS
+  acme.org/hana/service/provider:v1.0.0->acme.org/hana/service/installer:v1.0.0                                            acme.org/gardener/service provider  v1.x.x                              (resolved to v1.0.0)
+  acme.org/hana/service/provider:v1.0.0->acme.org/hana/service/installer:v1.0.0                                            acme.org/gardener/service provider  v1.0.0          ServiceProvider     Gardener Kubernetes as a Service Management
+  acme.org/hana/service/provider:v1.0.0->acme.org/hana/service/installer:v1.0.0->acme.org/gardener/service/provider:v1.0.0 ...                                                                     
+  `, 2)))
+		})
+
 		It("run plugin based ocm command with closure tree", func() {
 			var buf bytes.Buffer
 
@@ -93,6 +120,24 @@ var _ = Describe("cliplugin", func() {
   NESTING COMPONENT                 NAME      VERSION VARIANT KIND                SHORTNAME
   └─ ⊗    acme.org/gardener/service provider  v1.0.0          ServiceProvider     Gardener Kubernetes as a Service Management
      └─   acme.org/gardener/service installer v1.0.0          InstallationService Installer for Gardener
+`, 2)))
+		})
+
+		It("run plugin based ocm command with closure tree with constraint resolution", func() {
+			var buf bytes.Buffer
+
+			MustBeSuccessful(env.CatchOutput(&buf).Execute("get", "services", "-otree", "-rR", "--repo", basepath+"/"+ARCH, COMP_MSP_HANA+"/provider"))
+
+			Expect(buf.String()).To(StringEqualTrimmedWithContext(mutils.Crop(`
+  NESTING     COMPONENT                 NAME      VERSION VARIANT KIND                SHORTNAME
+  └─ ⊗        acme.org/hana/service     provider  v1.0.0          ServiceProvider     Hana as a Service
+     ├─       acme.org/gardener/service provider  v1.x.x                              (resolved to v1.0.0)
+     ├─ ⊗     acme.org/gardener/service provider  v1.0.0          ServiceProvider     Gardener Kubernetes as a Service Management
+     │  └─    acme.org/gardener/service installer v1.0.0          InstallationService Installer for Gardener
+     └─ ⊗     acme.org/hana/service     installer v1.0.0          InstallationService Installer for HaaS
+        ├─    acme.org/gardener/service provider  v1.x.x                              (resolved to v1.0.0)
+        └─ ⊗  acme.org/gardener/service provider  v1.0.0          ServiceProvider     Gardener Kubernetes as a Service Management
+           └─ ...                                                                     
 `, 2)))
 		})
 

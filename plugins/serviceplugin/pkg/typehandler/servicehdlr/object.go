@@ -43,9 +43,10 @@ type Object struct {
 	Id      identity.ServiceVersionVariantIdentity
 	Key     common.NameVersion
 
-	Error   error
-	Element *modeldesc.ServiceDescriptor
-	Node    *common.NameVersion
+	Resolved string
+	Error    error
+	Element  *modeldesc.ServiceDescriptor
+	Node     *common.NameVersion
 }
 
 func NewObject(hist common.History, elem *modeldesc.ServiceDescriptor) *Object {

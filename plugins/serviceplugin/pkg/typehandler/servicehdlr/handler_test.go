@@ -196,70 +196,73 @@ var _ = Describe("Handler Test Environment", func() {
 `, 2)))
 		})
 
-		It("resolves closure", func() {
-			sess := ocm.NewSession(nil)
-			defer Close(sess, "session")
+		Context("closure", func() {
+			It("resolves closure", func() {
+				sess := ocm.NewSession(nil)
+				defer Close(sess, "session")
 
-			h := Must(servicehdlr.ForComponents(env.OCM(), resolver, &output.Options{}, repo, sess, sliceutils.AsSlice(COMP_MSP_GARDENER)))
+				h := Must(servicehdlr.ForComponents(env.OCM(), resolver, &output.Options{}, repo, sess, sliceutils.AsSlice(COMP_MSP_GARDENER)))
 
-			copt := closureoption.New("service")
-			copt.Closure = true
+				copt := closureoption.New("service")
+				copt.Closure = true
 
-			opts := &output.Options{
-				OptionSet: options.OptionSet{copt, servicehdlr.NewState(h.GetResolver())},
-				Context:   env.Context,
-			}
+				opts := &output.Options{
+					OptionSet: options.OptionSet{copt, servicehdlr.NewState(h.GetResolver())},
+					Context:   env.Context,
+				}
 
-			opts.Output = getCRegular(opts)
-			MustBeSuccessful(utils.HandleOutput(opts.Output, h))
-			Expect(buf.String()).To(StringEqualTrimmedWithContext(mutils.Crop(`
+				opts.Output = getCRegular(opts)
+				MustBeSuccessful(utils.HandleOutput(opts.Output, h))
+				Expect(buf.String()).To(StringEqualTrimmedWithContext(mutils.Crop(`
   REFERENCEPATH                             COMPONENT                 NAME      VERSION VARIANT KIND                SHORTNAME
                                             acme.org/gardener/service provider  v1.0.0          ServiceProvider     Gardener Kubernetes as a Service Management
   acme.org/gardener/service/provider:v1.0.0 acme.org/gardener/service installer v1.0.0          InstallationService Installer for Gardener
 `, 2)))
-		})
+			})
 
-		It("resolves closure tree", func() {
-			sess := ocm.NewSession(nil)
-			defer Close(sess, "session")
+			It("resolves closure tree", func() {
+				sess := ocm.NewSession(nil)
+				defer Close(sess, "session")
 
-			h := Must(servicehdlr.ForComponents(env.OCM(), resolver, &output.Options{}, repo, sess, sliceutils.AsSlice(COMP_MSP_GARDENER)))
+				h := Must(servicehdlr.ForComponents(env.OCM(), resolver, &output.Options{}, repo, sess, sliceutils.AsSlice(COMP_MSP_GARDENER)))
 
-			copt := closureoption.New("service")
-			copt.Closure = true
-			copt.AddReferencePath = options.Never()
+				copt := closureoption.New("service")
+				copt.Closure = true
+				copt.AddReferencePath = options.Never()
 
-			opts := &output.Options{
-				OptionSet: options.OptionSet{copt, servicehdlr.NewState(h.GetResolver())},
-				Context:   env.Context,
-			}
+				opts := &output.Options{
+					OptionSet: options.OptionSet{copt, servicehdlr.NewState(h.GetResolver())},
+					Context:   env.Context,
+				}
 
-			opts.Output = getCTree(opts)
-			MustBeSuccessful(utils.HandleOutput(opts.Output, h))
-			Expect(buf.String()).To(StringEqualTrimmedWithContext(mutils.Crop(`
+				opts.Output = getCTree(opts)
+				MustBeSuccessful(utils.HandleOutput(opts.Output, h))
+				Expect(buf.String()).To(StringEqualTrimmedWithContext(mutils.Crop(`
   NESTING COMPONENT                 NAME      VERSION VARIANT KIND                SHORTNAME
   └─ ⊗    acme.org/gardener/service provider  v1.0.0          ServiceProvider     Gardener Kubernetes as a Service Management
      └─   acme.org/gardener/service installer v1.0.0          InstallationService Installer for Gardener
 `, 2)))
+			})
 		})
 
-		It("resolves constrainted closure", func() {
-			sess := ocm.NewSession(nil)
-			defer Close(sess, "session")
+		Context("constrainted", func() {
+			It("resolves constrainted closure", func() {
+				sess := ocm.NewSession(nil)
+				defer Close(sess, "session")
 
-			h := Must(servicehdlr.ForComponents(env.OCM(), resolver, &output.Options{}, repo, sess, sliceutils.AsSlice(COMP_MSP_HANA)))
+				h := Must(servicehdlr.ForComponents(env.OCM(), resolver, &output.Options{}, repo, sess, sliceutils.AsSlice(COMP_MSP_HANA)))
 
-			copt := closureoption.New("service")
-			copt.Closure = true
+				copt := closureoption.New("service")
+				copt.Closure = true
 
-			opts := &output.Options{
-				OptionSet: options.OptionSet{copt, servicehdlr.NewState(h.GetResolver())},
-				Context:   env.Context,
-			}
+				opts := &output.Options{
+					OptionSet: options.OptionSet{copt, servicehdlr.NewState(h.GetResolver())},
+					Context:   env.Context,
+				}
 
-			opts.Output = getCRegular(opts)
-			MustBeSuccessful(utils.HandleOutput(opts.Output, h))
-			Expect(buf.String()).To(StringEqualTrimmedWithContext(mutils.Crop(`
+				opts.Output = getCRegular(opts)
+				MustBeSuccessful(utils.HandleOutput(opts.Output, h))
+				Expect(buf.String()).To(StringEqualTrimmedWithContext(mutils.Crop(`
   REFERENCEPATH                                                                 COMPONENT                 NAME      VERSION VARIANT KIND                SHORTNAME
                                                                                 acme.org/hana/service     provider  v1.0.0          ServiceProvider     Hana as a Service
   acme.org/hana/service/provider:v1.0.0                                         acme.org/gardener/service provider  v1.x.x                              
@@ -267,32 +270,95 @@ var _ = Describe("Handler Test Environment", func() {
   acme.org/hana/service/provider:v1.0.0->acme.org/hana/service/installer:v1.0.0 acme.org/gardener/service provider  v1.x.x                              
 
 `, 2)))
-		})
+			})
 
-		It("resolves constrainted closure tree", func() {
-			sess := ocm.NewSession(nil)
-			defer Close(sess, "session")
+			It("resolves constrainted closure tree", func() {
+				sess := ocm.NewSession(nil)
+				defer Close(sess, "session")
 
-			h := Must(servicehdlr.ForComponents(env.OCM(), resolver, &output.Options{}, repo, sess, sliceutils.AsSlice(COMP_MSP_HANA)))
+				h := Must(servicehdlr.ForComponents(env.OCM(), resolver, &output.Options{}, repo, sess, sliceutils.AsSlice(COMP_MSP_HANA)))
 
-			copt := closureoption.New("service")
-			copt.Closure = true
-			copt.AddReferencePath = options.Never()
+				copt := closureoption.New("service")
+				copt.Closure = true
+				copt.AddReferencePath = options.Never()
 
-			opts := &output.Options{
-				OptionSet: options.OptionSet{copt, servicehdlr.NewState(h.GetResolver())},
-				Context:   env.Context,
-			}
+				opts := &output.Options{
+					OptionSet: options.OptionSet{copt, servicehdlr.NewState(h.GetResolver())},
+					Context:   env.Context,
+				}
 
-			opts.Output = getCTree(opts)
-			MustBeSuccessful(utils.HandleOutput(opts.Output, h))
-			Expect(buf.String()).To(StringEqualTrimmedWithContext(mutils.Crop(`
+				opts.Output = getCTree(opts)
+				MustBeSuccessful(utils.HandleOutput(opts.Output, h))
+				Expect(buf.String()).To(StringEqualTrimmedWithContext(mutils.Crop(`
   NESTING  COMPONENT                 NAME      VERSION VARIANT KIND                SHORTNAME
   └─ ⊗     acme.org/hana/service     provider  v1.0.0          ServiceProvider     Hana as a Service
      ├─    acme.org/gardener/service provider  v1.x.x                              
      └─ ⊗  acme.org/hana/service     installer v1.0.0          InstallationService Installer for HaaS
         └─ acme.org/gardener/service provider  v1.x.x      
 `, 2)))
+			})
+		})
+
+		Context("constrainted with resolution", func() {
+			It("resolves constrainted closure with resolution", func() {
+				sess := ocm.NewSession(nil)
+				defer Close(sess, "session")
+
+				h := Must(servicehdlr.ForComponents(env.OCM(), resolver, &output.Options{}, repo, sess, sliceutils.AsSlice(COMP_MSP_HANA)))
+
+				copt := closureoption.New("service")
+				copt.Closure = true
+
+				opts := &output.Options{
+					OptionSet: options.OptionSet{copt, servicehdlr.NewState(h.GetResolver()).WithLatestResolution()},
+					Context:   env.Context,
+				}
+
+				opts.Output = getCRegular(opts)
+				MustBeSuccessful(utils.HandleOutput(opts.Output, h))
+				Expect(buf.String()).To(StringEqualTrimmedWithContext(mutils.Crop(`
+  REFERENCEPATH                                                                                                            COMPONENT                 NAME      VERSION VARIANT KIND                SHORTNAME
+                                                                                                                           acme.org/hana/service     provider  v1.0.0          ServiceProvider     Hana as a Service
+  acme.org/hana/service/provider:v1.0.0                                                                                    acme.org/gardener/service provider  v1.x.x                              (resolved to v1.0.0)
+  acme.org/hana/service/provider:v1.0.0                                                                                    acme.org/gardener/service provider  v1.0.0          ServiceProvider     Gardener Kubernetes as a Service Management
+  acme.org/hana/service/provider:v1.0.0->acme.org/gardener/service/provider:v1.0.0                                         acme.org/gardener/service installer v1.0.0          InstallationService Installer for Gardener
+  acme.org/hana/service/provider:v1.0.0                                                                                    acme.org/hana/service     installer v1.0.0          InstallationService Installer for HaaS
+  acme.org/hana/service/provider:v1.0.0->acme.org/hana/service/installer:v1.0.0                                            acme.org/gardener/service provider  v1.x.x                              (resolved to v1.0.0)
+  acme.org/hana/service/provider:v1.0.0->acme.org/hana/service/installer:v1.0.0                                            acme.org/gardener/service provider  v1.0.0          ServiceProvider     Gardener Kubernetes as a Service Management
+  acme.org/hana/service/provider:v1.0.0->acme.org/hana/service/installer:v1.0.0->acme.org/gardener/service/provider:v1.0.0 ...                                                                     
+
+  `, 2)))
+			})
+
+			It("resolves constrainted closure tree with resolution", func() {
+				sess := ocm.NewSession(nil)
+				defer Close(sess, "session")
+
+				h := Must(servicehdlr.ForComponents(env.OCM(), resolver, &output.Options{}, repo, sess, sliceutils.AsSlice(COMP_MSP_HANA)))
+
+				copt := closureoption.New("service")
+				copt.Closure = true
+				copt.AddReferencePath = options.Never()
+
+				opts := &output.Options{
+					OptionSet: options.OptionSet{copt, servicehdlr.NewState(h.GetResolver()).WithLatestResolution()},
+					Context:   env.Context,
+				}
+
+				opts.Output = getCTree(opts)
+				MustBeSuccessful(utils.HandleOutput(opts.Output, h))
+				Expect(buf.String()).To(StringEqualTrimmedWithContext(mutils.Crop(`
+  NESTING     COMPONENT                 NAME      VERSION VARIANT KIND                SHORTNAME
+  └─ ⊗        acme.org/hana/service     provider  v1.0.0          ServiceProvider     Hana as a Service
+     ├─       acme.org/gardener/service provider  v1.x.x                              (resolved to v1.0.0)
+     ├─ ⊗     acme.org/gardener/service provider  v1.0.0          ServiceProvider     Gardener Kubernetes as a Service Management
+     │  └─    acme.org/gardener/service installer v1.0.0          InstallationService Installer for Gardener
+     └─ ⊗     acme.org/hana/service     installer v1.0.0          InstallationService Installer for HaaS
+        ├─    acme.org/gardener/service provider  v1.x.x                              (resolved to v1.0.0)
+        └─ ⊗  acme.org/gardener/service provider  v1.0.0          ServiceProvider     Gardener Kubernetes as a Service Management
+           └─ ...                                                                     
+`, 2)))
+			})
 		})
 	})
 })

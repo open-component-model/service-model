@@ -2,6 +2,7 @@ package servicehdlr_test
 
 import (
 	"bytes"
+	"fmt"
 
 	"github.com/mandelsoft/goutils/generics"
 	. "github.com/mandelsoft/goutils/testutils"
@@ -129,7 +130,11 @@ func mapGetRegularOutput(e interface{}) interface{} {
 	}
 	r := obj.Element
 	if r == nil {
-		return sliceutils.AsSlice(obj.Id.Component(), obj.Id.Name(), obj.Id.Version(), obj.Id.Variant().String(), "", "")
+		res := ""
+		if obj.Resolved != "" {
+			res = fmt.Sprintf("(resolved to %s)", obj.Resolved)
+		}
+		return sliceutils.AsSlice(obj.Id.Component(), obj.Id.Name(), obj.Id.Version(), obj.Id.Variant().String(), "", res)
 	}
 	return sliceutils.AsSlice(r.Service.Component(), r.Service.Name(), r.Version, r.Kind.GetVariant().String(), r.Kind.GetType(), r.ShortName)
 }
