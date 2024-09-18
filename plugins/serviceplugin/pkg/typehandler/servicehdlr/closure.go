@@ -16,7 +16,10 @@ import (
 )
 
 func DependencyLabel(o *tree.TreeObject) string {
-	return string(o.Object.(*Object).Relation)
+	if o.Object.IsNode() != nil {
+		return string(o.Object.(*Object).Relation)
+	}
+	return ""
 }
 
 func ClosureExplode(opts *output.Options, e interface{}) []interface{} {

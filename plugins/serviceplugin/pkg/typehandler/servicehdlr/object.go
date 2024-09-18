@@ -152,6 +152,7 @@ func (o *Object) GetKey() common.NameVersion {
 
 func (o *Object) CreateContinue() typehandler.NormObject {
 	dummy := *o
+	dummy.Relation = ""
 	dummy.Node = nil
 	dummy.Element = nil
 	dummy.History = append(dummy.History, NewNameVersion(o.Id.ServiceIdentity(), o.Id.Version(), o.Id.Variant()))

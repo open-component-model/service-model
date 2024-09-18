@@ -192,7 +192,7 @@ func NormalizedTableOutput(in *output.TableOutput, norm ...servicehdlr.Normalize
 func mapGetRegularOutput(e interface{}) interface{} {
 	obj := e.(*servicehdlr.Object)
 	if obj.Node == nil {
-		return sliceutils.AsSlice("...", "", "", "", "", "")
+		return sliceutils.AsSlice("...", "", "", "", "", "(already covered in tree)")
 	}
 	r := obj.Element
 	if r == nil {

@@ -107,7 +107,7 @@ var _ = Describe("cliplugin", func() {
   acme.org/hana/service/provider:v1.0.0                                                                                    acme.org/hana/service     installer v1.0.0          InstallationService Installer for HaaS
   acme.org/hana/service/provider:v1.0.0->acme.org/hana/service/installer:v1.0.0                                            acme.org/gardener/service provider  v1.x.x                              (resolved to v1.0.0)
   acme.org/hana/service/provider:v1.0.0->acme.org/hana/service/installer:v1.0.0                                            acme.org/gardener/service provider  v1.0.0          ServiceProvider     Gardener Kubernetes as a Service Management
-  acme.org/hana/service/provider:v1.0.0->acme.org/hana/service/installer:v1.0.0->acme.org/gardener/service/provider:v1.0.0 ...                                                                     
+  acme.org/hana/service/provider:v1.0.0->acme.org/hana/service/installer:v1.0.0->acme.org/gardener/service/provider:v1.0.0 ...                                                                     (already covered in tree)
   `, 2)))
 		})
 
@@ -137,7 +137,7 @@ var _ = Describe("cliplugin", func() {
      └─ ⊗     acme.org/hana/service     installer v1.0.0          InstallationService Installer for HaaS
         ├─    acme.org/gardener/service provider  v1.x.x                              (resolved to v1.0.0)
         └─ ⊗  acme.org/gardener/service provider  v1.0.0          ServiceProvider     Gardener Kubernetes as a Service Management
-           └─ ...                                                                     
+           └─ ...                                                                     (already covered in tree)
 `, 2)))
 		})
 
