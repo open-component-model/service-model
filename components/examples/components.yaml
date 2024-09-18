@@ -3,7 +3,7 @@ components:
 #
 # Kubernetes
 #
-- name: acme.org/kubernetes/apis
+- name: kubernetes.io/apis
   version: v1.22.0
   provider:
     name: acme.org
@@ -14,7 +14,7 @@ components:
       type: file
       path: ../../examples/descriptors/ContractK8sCluster22.yaml
       mediaType: application/x-yaml
-- name: acme.org/kubernetes/apis
+- name: kubernetes.io/apis
   version: v1.23.0
   provider:
     name: acme.org
@@ -91,6 +91,18 @@ components:
         mediaType: application/x-yaml
         yaml: some hana installer descriptor
 
+- name: acme.org/hana/apis
+  version: v1.5.0
+  provider:
+    name: acme.org
+  resources:
+    - name: servicemodel
+      type: serviceModelDescription
+      input:
+        type: file
+        path: ../../examples/descriptors/SvcHana.yaml
+        mediaType: application/x-yaml
+
 #
 # Steampunk
 #
@@ -111,3 +123,15 @@ components:
         type: utf8
         mediaType: application/x-yaml
         yaml: some steampunk installer descriptor
+
+- name: acme.org/steampunk/apis
+  version: v8.0.0
+  provider:
+    name: acme.org
+  resources:
+    - name: servicemodel
+      type: serviceModelDescription
+      input:
+        type: file
+        path: ../../examples/descriptors/SvcAbap.yaml
+        mediaType: application/x-yaml

@@ -2,6 +2,7 @@ package crossref
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 
 	"github.com/mandelsoft/goutils/errors"
@@ -15,28 +16,37 @@ import (
 type DepKind string
 
 const (
-	DEP_DEPENDENCY  DepKind = "dependency"
-	DEP_DESCRIPTION DepKind = "description"
-	DEP_MEET        DepKind = "meet"
-	DEP_INSTALLER   DepKind = "installer"
+	DEP_DEPENDS     DepKind = "depends"
+	DEP_INSTANCE    DepKind = "instance"
+	DEP_SATISFIES   DepKind = "satisfies"
+	DEP_MANAGES     DepKind = "manages"
+	DEP_INSTALLEDBY DepKind = "installedby"
+	DEP_INSTALLS    DepKind = "installs" // beware of resulting dep cycles
+	DEP_OTHER       DepKind = "other"
 )
 
 type (
 	ServiceVersionVariantIdentity = identity.ServiceVersionVariantIdentity
 	ServiceVersionIdentity        = identity.ServiceVersionIdentity
+	ServiceVariantIdentity        = identity.ServiceVariantIdentity
 	ServiceIdentity               = identity.ServiceIdentity
+	Variant                       = identity.Variant
 )
 
 func NewServiceVersionIdentity(s identity.ServiceIdentity, vers string) ServiceVersionIdentity {
 	return identity.NewServiceVersionId(s, vers)
 }
 
+func NewServiceVariantIdentity(s identity.ServiceIdentity, variant ...Variant) ServiceVariantIdentity {
+	return identity.NewServiceVariantId(s, variant...)
+}
+
 func NewServiceVersionVariantIdentity(s identity.ServiceIdentity, vers string, variant ...identity.Variant) ServiceVersionVariantIdentity {
-	return identity.NewServiceVersionVariantIdentity(s, vers, variant...)
+	return identity.NewServiceVersionVariantId(s, vers, variant...)
 }
 
 func NewServiceVersionVariantIdentityFor(svi ServiceVersionIdentity, variant ...identity.Variant) ServiceVersionVariantIdentity {
-	return identity.NewServiceVersionVariantIdentityFor(svi, variant...)
+	return identity.NewServiceVersionVariantIdFor(svi, variant...)
 }
 
 type ServiceVersionVariantIdentities = identity.ServiceVersionVariantIdentities
@@ -44,23 +54,29 @@ type ServiceVersionVariantIdentities = identity.ServiceVersionVariantIdentities
 ////////////////////////////////////////////////////////////////////////////////
 
 type Reference struct {
-	Kind DepKind
-	Id   ServiceVersionVariantIdentity
+	Name         string
+	Kind         DepKind
+	Id           ServiceVariantIdentity
+	Constaraints []string
 }
 
-func NewReference(id identity.ServiceIdentity, vers string, variant identity.Variant, kind DepKind) *Reference {
-	return &Reference{kind, NewServiceVersionVariantIdentity(id, vers, variant)}
+func NewReference(name string, id identity.ServiceIdentity, vers string, variant identity.Variant, kind DepKind) *Reference {
+	return &Reference{name, kind, NewServiceVariantIdentity(id, variant), sliceutils.AsSlice(vers)}
+}
+
+func (r Reference) Equals(o Reference) bool {
+	return r.Name == o.Name && r.Kind == o.Kind &&
+		r.Id.Equals(o.Id) &&
+		slices.Equal(r.Constaraints, o.Constaraints)
 }
 
 type References = sliceutils.Slice[Reference]
 
-func AddVersionReferences(refs *References, id ServiceIdentity, variant identity.Variant, kind DepKind, versions ...string) {
+func AddVersionReferences(refs *References, name string, id ServiceIdentity, variant identity.Variant, kind DepKind, versions ...string) {
 	if len(versions) == 0 {
-		refs.Add(*NewReference(id, "", variant, kind))
+		refs.Add(*NewReference(name, id, "", variant, kind))
 	} else {
-		for _, e := range versions {
-			refs.Add(*NewReference(id, e, variant, kind))
-		}
+		refs.Add(Reference{name, kind, NewServiceVariantIdentity(id, variant), versions})
 	}
 }
 
@@ -210,4 +226,12 @@ func (c *CrossReferences) CheckLocalConsistency() error {
 		}
 	}
 	return errlist.Result()
+}
+
+func UniqueReferences(refs References) References {
+	var result References
+	for _, r := range refs {
+		result = sliceutils.AppendUniqueFunc(result, general.EqualsFuncFor[Reference](), r)
+	}
+	return refs
 }

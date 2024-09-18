@@ -8,7 +8,9 @@ import (
 
 func addReferences(c *crossref.CrossReferences, holder identity.ServiceVersionIdentity, variant identity.Variant, refs crossref.References) {
 	for _, r := range refs {
-		c.AddRef(holder, variant, r.Id, r.Kind)
+		for _, v := range r.Constaraints {
+			c.AddRef(holder, variant, r.Id.ForVersion(v), r.Kind)
+		}
 	}
 }
 
@@ -63,7 +65,7 @@ func CommonConsumerServiceImplementationReferences(s *metav1.CommonConsumerServi
 func DependencyReferences(s *metav1.Dependency) crossref.References {
 	var refs crossref.References
 
-	crossref.AddVersionReferences(&refs, s.Service, s.Variant, crossref.DEP_DEPENDENCY, s.VersionConstraints...)
+	crossref.AddVersionReferences(&refs, s.Name, s.Service, s.Variant, crossref.DEP_DEPENDS, s.VersionConstraints...)
 	for _, e := range s.ServiceInstances {
 		refs.Add(ServiceInstanceReferences(&e)...)
 	}
@@ -72,26 +74,28 @@ func DependencyReferences(s *metav1.Dependency) crossref.References {
 
 func ContractReferences(s *metav1.Contract) crossref.References {
 	var refs crossref.References
-	refs.Add(*crossref.NewReference(s.Service, s.Version, nil, crossref.DEP_MEET))
+	refs.Add(*crossref.NewReference("", s.Service, s.Version, nil, crossref.DEP_SATISFIES))
 	return refs
 }
 
 func ServiceInstanceReferences(s *metav1.ServiceInstance) crossref.References {
 	var refs crossref.References
-	crossref.AddVersionReferences(&refs, s.Service, s.Variant, crossref.DEP_DESCRIPTION, s.Versions...)
+	crossref.AddVersionReferences(&refs, "", s.Service, s.Variant, crossref.DEP_INSTANCE, s.Versions...)
 	return refs
 }
 
 func InstallerReferences(s *metav1.Installer) crossref.References {
 	var refs crossref.References
 
-	refs.Add(*crossref.NewReference(s.Service, s.Version, nil, crossref.DEP_INSTALLER))
+	refs.Add(*crossref.NewReference("", s.Service, s.Version, s.Variant, crossref.DEP_INSTALLEDBY))
 	return refs
 }
 
 func ManagedServiceReferences(s *metav1.ManagedService) crossref.References {
 	var refs crossref.References
-	crossref.AddVersionReferences(&refs, s.Service, s.Variant, crossref.DEP_DESCRIPTION, s.Versions...)
+	for _, v := range s.Versions {
+		refs.Add(*crossref.NewReference("", s.Service, v, s.Variant, crossref.DEP_MANAGES))
+	}
 	return refs
 }
 

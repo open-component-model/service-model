@@ -75,6 +75,6 @@ func (s *ServiceSpec) GetReferences() crossref.References {
 	var refs crossref.References
 
 	refs.Add(internal.CommonServiceImplementationReferences(&s.CommonServiceImplementationSpec)...)
-	crossref.AddVersionReferences(&refs, s.InstalledService, s.Variant, crossref.DEP_DESCRIPTION, s.Versions...)
+	crossref.AddVersionReferences(&refs, "", s.InstalledService, s.Variant, crossref.DEP_INSTALLS, s.Versions...)
 	return refs
 }

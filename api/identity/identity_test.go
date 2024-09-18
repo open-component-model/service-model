@@ -17,27 +17,27 @@ func CheckVariantId(id identity.ServiceVersionVariantIdentity, res string) {
 
 var _ = Describe("Identity Test Environment", func() {
 	It("service variant version", func() {
-		CheckVariantId(identity.NewServiceVersionVariantIdentity(identity.NewServiceId("acme.org/test", "provider"), "v1",
+		CheckVariantId(identity.NewServiceVersionVariantId(identity.NewServiceId("acme.org/test", "provider"), "v1",
 			identity.Variant{"iaas": "AWS"}),
 			"acme.org/test/provider:v1{iaas=AWS}",
 		)
 	})
 
 	It("service variant version without variant", func() {
-		CheckVariantId(identity.NewServiceVersionVariantIdentity(identity.NewServiceId("acme.org/test", "provider"), "v1"),
+		CheckVariantId(identity.NewServiceVersionVariantId(identity.NewServiceId("acme.org/test", "provider"), "v1"),
 			"acme.org/test/provider:v1",
 		)
 	})
 
 	It("service variant version without version", func() {
-		CheckVariantId(identity.NewServiceVersionVariantIdentity(identity.NewServiceId("acme.org/test", "provider"), "",
+		CheckVariantId(identity.NewServiceVersionVariantId(identity.NewServiceId("acme.org/test", "provider"), "",
 			identity.Variant{"iaas": "AWS"}),
 			"acme.org/test/provider{iaas=AWS}",
 		)
 	})
 
 	It("service variant version without version and variant", func() {
-		CheckVariantId(identity.NewServiceVersionVariantIdentity(identity.NewServiceId("acme.org/test", "provider"), ""),
+		CheckVariantId(identity.NewServiceVersionVariantId(identity.NewServiceId("acme.org/test", "provider"), ""),
 			"acme.org/test/provider",
 		)
 	})

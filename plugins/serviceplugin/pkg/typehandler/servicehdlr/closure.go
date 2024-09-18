@@ -3,6 +3,7 @@ package servicehdlr
 import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/mandelsoft/goutils/set"
+	"github.com/open-component-model/service-model/api/crossref"
 	"github.com/open-component-model/service-model/api/identity"
 	"github.com/open-component-model/service-model/api/modeldesc"
 	"ocm.software/ocm/api/cli"
@@ -11,10 +12,16 @@ import (
 	"ocm.software/ocm/cmds/ocm/commands/common/options/closureoption"
 	"ocm.software/ocm/cmds/ocm/common/output"
 	"ocm.software/ocm/cmds/ocm/common/processing"
+	"ocm.software/ocm/cmds/ocm/common/tree"
 )
 
+func DependencyLabel(o *tree.TreeObject) string {
+	return string(o.Object.(*Object).Relation)
+}
+
 func ClosureExplode(opts *output.Options, e interface{}) []interface{} {
-	return traverse(common.History{}, e.(*Object), opts.Context, From(opts))
+	list := traverse(common.History{}, e.(*Object), opts.Context, From(opts))
+	return list
 }
 
 func traverse(hist common.History, o *Object, octx cli.Context, state *State) []interface{} {
@@ -23,10 +30,13 @@ func traverse(hist common.History, o *Object, octx cli.Context, state *State) []
 		return nil
 	}
 	result := []interface{}{o}
-	deps := o.Element.Kind.GetDependencies()
+	deps := crossref.UniqueReferences(o.Element.GetReferences())
 	found := set.Set[string]{}
 	for _, d := range deps {
-		key := resolve(&result, hist, d.Service, d.Variant, d.VersionConstraints, state)
+		if !state.Relations.Has(d.Kind) {
+			continue
+		}
+		key := resolve(&result, hist, d.Kind, d.Id.ServiceIdentity(), d.Id.Variant(), d.Constaraints, state)
 		if key == nil {
 			continue
 		}
@@ -38,10 +48,10 @@ func traverse(hist common.History, o *Object, octx cli.Context, state *State) []
 		// TODO: provide error entry in list
 		nested, err := state.Resolver.LookupServiceVersionVariant(*key)
 		if err != nil {
-			result = append(result, NewErrorObject(err, hist, d.Service, key.Version(), key.Variant()))
+			result = append(result, NewErrorObject(err, hist, d.Kind, d.Id.ServiceIdentity(), key.Version(), key.Variant()))
 			continue
 		}
-		obj := NewObject(hist.Copy(), nested)
+		obj := NewObject(hist.Copy(), d.Kind, nested)
 		if nested == nil {
 			result = append(result, obj)
 		} else {
@@ -52,15 +62,15 @@ func traverse(hist common.History, o *Object, octx cli.Context, state *State) []
 	return result
 }
 
-func resolve(result *[]interface{}, hist common.History, s identity.ServiceIdentity, variant identity.Variant, versions []string, state *State) *identity.ServiceVersionVariantIdentity {
+func resolve(result *[]interface{}, hist common.History, label crossref.DepKind, s identity.ServiceIdentity, variant identity.Variant, versions []string, state *State) *identity.ServiceVersionVariantIdentity {
 	var obj *Object
 
 	if len(versions) != 1 {
-		obj = NewConstraintObject(hist.Copy(), s, versions, variant)
+		obj = NewConstraintObject(hist.Copy(), label, s, versions, variant)
 	} else {
-		key := identity.NewServiceVersionVariantIdentity(s, versions[0], variant)
+		key := identity.NewServiceVersionVariantId(s, versions[0], variant)
 		if key.IsConstraint() {
-			obj = NewConstraintObject(hist.Copy(), s, versions, variant)
+			obj = NewConstraintObject(hist.Copy(), label, s, versions, variant)
 		} else {
 			return &key
 		}
@@ -99,7 +109,7 @@ outer:
 				}
 			}
 			obj.Resolved = found[len(found)-1-i]
-			key := identity.NewServiceVersionVariantIdentity(s, obj.Resolved, variant)
+			key := identity.NewServiceVersionVariantId(s, obj.Resolved, variant)
 			return &key
 		}
 	}

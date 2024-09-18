@@ -88,23 +88,43 @@ func (id *ServiceIdentity) UnmarshalJSON(data []byte) error {
 ////////////////////////////////////////////////////////////////////////////////
 
 type ServiceVariantIdentity struct {
-	ServiceIdentity
-	Variant Variant
+	_ServiceIdentity
+	variant Variant
+}
+
+func NewServiceVariantId(s ServiceIdentity, variant ...Variant) ServiceVariantIdentity {
+	return ServiceVariantIdentity{s, general.Optional(variant...)}
+}
+
+func (id ServiceVariantIdentity) ServiceIdentity() ServiceIdentity {
+	return id._ServiceIdentity
+}
+
+func (id ServiceVariantIdentity) Variant() Variant {
+	return id.variant.Copy()
+}
+
+func (id ServiceVariantIdentity) ForVersion(vers string) ServiceVersionVariantIdentity {
+	return NewServiceVersionVariantId(id._ServiceIdentity, vers, id.variant)
 }
 
 func (id ServiceVariantIdentity) String() string {
-	return id.ServiceIdentity.String() + id.Variant.String()
+	return id._ServiceIdentity.String() + id.variant.String()
+}
+
+func (id ServiceVariantIdentity) Equals(o ServiceVariantIdentity) bool {
+	return id._ServiceIdentity == o._ServiceIdentity && id.variant.Equals(o.variant)
 }
 
 func (id *ServiceVariantIdentity) Parse(s string) error {
 	var errlist errors.ErrorList
 	idx := strings.LastIndex(s, "{")
 	if idx >= 0 {
-		errlist.Add(id.ServiceIdentity.Parse(s[:idx]))
-		errlist.Add(id.Variant.Parse(s[idx:]))
+		errlist.Add(id._ServiceIdentity.Parse(s[:idx]))
+		errlist.Add(id.variant.Parse(s[idx:]))
 	} else {
-		errlist.Add(id.ServiceIdentity.Parse(s))
-		id.Variant = nil
+		errlist.Add(id._ServiceIdentity.Parse(s))
+		id.variant = nil
 	}
 	return errlist.Result()
 }
@@ -234,11 +254,11 @@ type ServiceVersionVariantIdentity struct {
 	variant Variant
 }
 
-func NewServiceVersionVariantIdentity(si ServiceIdentity, vers string, variant ...Variant) ServiceVersionVariantIdentity {
+func NewServiceVersionVariantId(si ServiceIdentity, vers string, variant ...Variant) ServiceVersionVariantIdentity {
 	return ServiceVersionVariantIdentity{NewServiceVersionId(si, vers), general.Optional(variant...)}
 }
 
-func NewServiceVersionVariantIdentityFor(svi ServiceVersionIdentity, variant ...Variant) ServiceVersionVariantIdentity {
+func NewServiceVersionVariantIdFor(svi ServiceVersionIdentity, variant ...Variant) ServiceVersionVariantIdentity {
 	return ServiceVersionVariantIdentity{svi, general.Optional(variant...)}
 }
 

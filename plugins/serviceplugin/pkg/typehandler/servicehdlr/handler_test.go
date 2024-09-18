@@ -3,16 +3,16 @@ package servicehdlr_test
 import (
 	"bytes"
 
+	"github.com/mandelsoft/goutils/general"
+	"github.com/mandelsoft/goutils/sliceutils"
 	. "github.com/mandelsoft/goutils/testutils"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	. "github.com/open-component-model/service-model/examples"
-
-	"github.com/mandelsoft/goutils/general"
-	"github.com/mandelsoft/goutils/sliceutils"
+	"github.com/open-component-model/service-model/api/crossref"
 	metav1 "github.com/open-component-model/service-model/api/identity"
 	ocmdesc "github.com/open-component-model/service-model/api/ocm"
 	mutils "github.com/open-component-model/service-model/api/utils"
+	. "github.com/open-component-model/service-model/examples"
 	"github.com/open-component-model/service-model/plugins/serviceplugin/pkg/typehandler"
 	"github.com/open-component-model/service-model/plugins/serviceplugin/pkg/typehandler/servicehdlr"
 	"ocm.software/ocm/api/ocm"
@@ -75,7 +75,7 @@ var _ = Describe("Handler Test Environment", func() {
 		It("dedicated service", func() {
 			h := servicehdlr.ForServices(resolver)
 
-			list := Must(h.Get(utils.StringSpec(metav1.NewServiceVersionVariantIdentity(metav1.NewServiceId(COMP_MSP_GARDENER, "provider"), VERS_MSP_GARDENER).String())))
+			list := Must(h.Get(utils.StringSpec(metav1.NewServiceVersionVariantId(metav1.NewServiceId(COMP_MSP_GARDENER, "provider"), VERS_MSP_GARDENER).String())))
 			Expect(len(list)).To(Equal(1))
 			Expect(servicehdlr.Elem(list[0]).Service).To(Equal(metav1.NewServiceId(COMP_MSP_GARDENER, "provider")))
 			Expect(servicehdlr.Elem(list[0]).Version).To(Equal(VERS_MSP_GARDENER))
@@ -243,6 +243,30 @@ var _ = Describe("Handler Test Environment", func() {
      └─   acme.org/gardener/service installer v1.0.0          InstallationService Installer for Gardener
 `, 2)))
 			})
+
+			It("resolves closure tree with label", func() {
+				sess := ocm.NewSession(nil)
+				defer Close(sess, "session")
+
+				h := Must(servicehdlr.ForComponents(env.OCM(), resolver, &output.Options{}, repo, sess, sliceutils.AsSlice(COMP_MSP_GARDENER)))
+
+				copt := closureoption.New("service")
+				copt.Closure = true
+				copt.AddReferencePath = options.Never()
+
+				opts := &output.Options{
+					OptionSet: options.OptionSet{copt, servicehdlr.NewState(h.GetResolver()).WithRelations(crossref.DEP_INSTALLEDBY)},
+					Context:   env.Context,
+				}
+
+				opts.Output = getCTree(opts)
+				MustBeSuccessful(utils.HandleOutput(opts.Output, h))
+				Expect(buf.String()).To(StringEqualTrimmedWithContext(mutils.Crop(`
+  RELATION          COMPONENT                 NAME      VERSION VARIANT KIND                SHORTNAME
+  └─ ⊗              acme.org/gardener/service provider  v1.0.0          ServiceProvider     Gardener Kubernetes as a Service Management
+     └─ installedby acme.org/gardener/service installer v1.0.0          InstallationService Installer for Gardener
+`, 2)))
+			})
 		})
 
 		Context("constrainted", func() {
@@ -341,8 +365,11 @@ var _ = Describe("Handler Test Environment", func() {
 				copt.AddReferencePath = options.Never()
 
 				opts := &output.Options{
-					OptionSet: options.OptionSet{copt, servicehdlr.NewState(h.GetResolver()).WithLatestResolution()},
-					Context:   env.Context,
+					OptionSet: options.OptionSet{
+						copt,
+						servicehdlr.NewState(h.GetResolver()).WithLatestResolution(),
+					},
+					Context: env.Context,
 				}
 
 				opts.Output = getCTree(opts)
@@ -361,6 +388,10 @@ var _ = Describe("Handler Test Environment", func() {
 			})
 		})
 	})
+
+	It("", func() {
+		Expect(mutils.Convert[string]([]crossref.DepKind{crossref.DEP_INSTANCE})).To(Equal([]string{string(crossref.DEP_INSTANCE)}))
+	})
 })
 
 func getCRegular(opts *output.Options) output.Output {
@@ -368,7 +399,14 @@ func getCRegular(opts *output.Options) output.Output {
 }
 
 func getCTree(opts *output.Options) output.Output {
-	return output.TreeOutput(NormalizedTableOutput(closureoption.TableOutput(TableOutput(opts, mapGetRegularOutput), servicehdlr.ClosureExplode), typehandler.NormalizeFunction), "NESTING").New()
+	var topts []output.TreeOutputOption
+	key := "NESTING"
+	state := servicehdlr.From(opts)
+	if !state.IsStandardRelations() {
+		topts = []output.TreeOutputOption{output.TreeElemTitleFunc(servicehdlr.DependencyLabel)}
+		key = "RELATION"
+	}
+	return output.TreeOutput(NormalizedTableOutput(closureoption.TableOutput(TableOutput(opts, mapGetRegularOutput), servicehdlr.ClosureExplode), typehandler.NormalizeFunction), key, topts...).New()
 }
 
 func NormalizedTableOutput(in *output.TableOutput, norm ...servicehdlr.NormalizeFunction) *output.TableOutput {

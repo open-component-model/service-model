@@ -54,7 +54,7 @@ func (t *Services) Get(name utils.ElemSpec) ([]output.Object, error) {
 
 		var result []output.Object
 		for _, v := range versions {
-			l, err := t.get(identity.NewServiceVersionVariantIdentity(id.ServiceIdentity(), v, id.Variant()))
+			l, err := t.get(identity.NewServiceVersionVariantId(id.ServiceIdentity(), v, id.Variant()))
 			if err != nil {
 				return nil, err
 			}
@@ -70,7 +70,7 @@ func (t *Services) get(id identity.ServiceVersionVariantIdentity) ([]output.Obje
 	if err != nil {
 		return nil, err
 	}
-	obj := NewObject(nil, s)
+	obj := NewObject(nil, "", s)
 	if t.opts.state != nil {
 		t.opts.state.Add(obj.Element)
 	}

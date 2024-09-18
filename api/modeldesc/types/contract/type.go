@@ -27,10 +27,6 @@ func (s *ServiceSpec) GetVariant() identity.Variant {
 	return nil
 }
 
-func (s *ServiceSpec) GetDependencies() []metav1.Dependency {
-	return nil
-}
-
 func (s *ServiceSpec) Copy() internal.ServiceKindSpec {
 	var spec *runtime.RawValue
 	if s.Specification != nil {

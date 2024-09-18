@@ -54,6 +54,5 @@ func (s *ServiceSpec) GetReferences() crossref.References {
 	for _, e := range s.ManagedServices {
 		refs.Add(internal.ManagedServiceReferences(&e)...)
 	}
-	refs.Add(internal.CommonServiceImplementationReferences(&s.CommonServiceImplementationSpec)...)
 	return refs
 }

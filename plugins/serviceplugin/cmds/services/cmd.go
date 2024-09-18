@@ -172,7 +172,14 @@ func getRegular(opts *output.Options) output.Output {
 }
 
 func getTree(opts *output.Options) output.Output {
-	return output.TreeOutput(NormalizedTableOutput(closureoption.TableOutput(TableOutput(opts, mapGetRegularOutput), servicehdlr.ClosureExplode), typehandler.NormalizeFunction), "NESTING").New()
+	var topts []output.TreeOutputOption
+	key := "NESTING"
+	state := servicehdlr.From(opts)
+	if !state.IsStandardRelations() {
+		topts = []output.TreeOutputOption{output.TreeElemTitleFunc(servicehdlr.DependencyLabel)}
+		key = "RELATION"
+	}
+	return output.TreeOutput(NormalizedTableOutput(closureoption.TableOutput(TableOutput(opts, mapGetRegularOutput), servicehdlr.ClosureExplode), typehandler.NormalizeFunction), key, topts...).New()
 }
 
 func NormalizedTableOutput(in *output.TableOutput, norm ...servicehdlr.NormalizeFunction) *output.TableOutput {

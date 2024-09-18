@@ -55,7 +55,7 @@ func (c *_context) MatchComponent(s metav1.ServiceIdentity) bool {
 }
 
 func (c *_context) ValidateResource(r *ocmmeta.ResourceReference) error {
-	if c.validator == nil {
+	if c.validator == nil || r == nil {
 		return nil
 	}
 	return c.validator(r)

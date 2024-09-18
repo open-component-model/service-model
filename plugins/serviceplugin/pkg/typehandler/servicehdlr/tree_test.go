@@ -12,7 +12,6 @@ import (
 	"github.com/mandelsoft/goutils/sliceutils"
 	"github.com/open-component-model/service-model/api/crossref"
 	"github.com/open-component-model/service-model/api/identity"
-	metav1 "github.com/open-component-model/service-model/api/meta/v1"
 	"github.com/open-component-model/service-model/api/modeldesc"
 	"github.com/open-component-model/service-model/api/modeldesc/types/contract"
 	"github.com/open-component-model/service-model/api/modeldesc/types/installer"
@@ -75,10 +74,6 @@ func (k *Kind) GetVariant() identity.Variant {
 	return nil
 }
 
-func (k *Kind) GetDependencies() []metav1.Dependency {
-	return nil
-}
-
 func (k *Kind) Copy() modeldesc.ServiceKindSpec {
 	return generics.Pointer(*k)
 }
@@ -96,7 +91,7 @@ func (k *Kind) GetReferences() crossref.References {
 }
 
 func NewObject(sid identity.ServiceIdentity, vers string, kind string, short string) *servicehdlr.Object {
-	return servicehdlr.NewObject(nil, &modeldesc.ServiceDescriptor{
+	return servicehdlr.NewObject(nil, "", &modeldesc.ServiceDescriptor{
 		CommonServiceSpec: vpi.CommonServiceSpec{
 			Service:   sid,
 			Version:   vers,

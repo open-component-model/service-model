@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/mandelsoft/goutils/sliceutils"
+	"github.com/open-component-model/service-model/api/crossref"
 	"github.com/open-component-model/service-model/api/identity"
 	"github.com/open-component-model/service-model/api/modeldesc"
 	"github.com/open-component-model/service-model/api/utils"
@@ -38,10 +39,12 @@ type Manifest struct {
 }
 
 type Object struct {
-	History common.History
-	Sort    common.History
-	Id      identity.ServiceVersionVariantIdentity
-	Key     common.NameVersion
+	History  common.History
+	Sort     common.History
+	Key      common.NameVersion
+	Id       identity.ServiceVersionVariantIdentity
+	Relation crossref.DepKind
+	Name     string
 
 	Resolved string
 	Error    error
@@ -49,44 +52,47 @@ type Object struct {
 	Node     *common.NameVersion
 }
 
-func NewObject(hist common.History, elem *modeldesc.ServiceDescriptor) *Object {
-	id := identity.NewServiceVersionVariantIdentity(elem.Service, elem.Version, elem.Kind.GetVariant())
+func NewObject(hist common.History, label crossref.DepKind, elem *modeldesc.ServiceDescriptor) *Object {
+	id := identity.NewServiceVersionVariantId(elem.Service, elem.Version, elem.Kind.GetVariant())
 	nv := NewNameVersion(id.ServiceIdentity(), id.Version(), id.Variant())
 	return &Object{
-		History: hist,
-		Sort:    sliceutils.AsSlice(nv),
-		Id:      id,
-		Key:     nv,
-		Element: elem,
-		Node:    &nv,
+		History:  hist,
+		Sort:     sliceutils.AsSlice(nv),
+		Id:       id,
+		Relation: label,
+		Key:      nv,
+		Element:  elem,
+		Node:     &nv,
 	}
 }
 
-func NewConstraintObject(hist common.History, sid identity.ServiceIdentity, constraints []string, variant ...identity.Variant) *Object {
+func NewConstraintObject(hist common.History, label crossref.DepKind, sid identity.ServiceIdentity, constraints []string, variant ...identity.Variant) *Object {
 	vers := strings.Join(constraints, ";")
-	id := identity.NewServiceVersionVariantIdentity(sid, vers, variant...)
+	id := identity.NewServiceVersionVariantId(sid, vers, variant...)
 	nv := NewNameVersion(sid, vers, variant...)
 	return &Object{
-		History: hist,
-		Sort:    sliceutils.AsSlice(nv),
-		Id:      id,
-		Key:     nv,
-		Element: nil,
-		Node:    &nv,
+		History:  hist,
+		Sort:     sliceutils.AsSlice(nv),
+		Id:       id,
+		Relation: label,
+		Key:      nv,
+		Element:  nil,
+		Node:     &nv,
 	}
 }
 
-func NewErrorObject(err error, hist common.History, sid identity.ServiceIdentity, version string, variant ...identity.Variant) *Object {
-	id := identity.NewServiceVersionVariantIdentity(sid, version, variant...)
+func NewErrorObject(err error, hist common.History, label crossref.DepKind, sid identity.ServiceIdentity, version string, variant ...identity.Variant) *Object {
+	id := identity.NewServiceVersionVariantId(sid, version, variant...)
 	nv := NewNameVersion(sid, version, variant...)
 	return &Object{
-		History: hist,
-		Sort:    sliceutils.AsSlice(nv),
-		Id:      id,
-		Key:     nv,
-		Error:   err,
-		Element: nil,
-		Node:    &nv,
+		History:  hist,
+		Sort:     sliceutils.AsSlice(nv),
+		Id:       id,
+		Relation: label,
+		Key:      nv,
+		Error:    err,
+		Element:  nil,
+		Node:     &nv,
 	}
 }
 
@@ -160,5 +166,5 @@ func (o *Object) Compare(b *Object) int {
 var Sort = processing.Sort(utils.Compare[*Object])
 
 func NewNameVersion(sid identity.ServiceIdentity, version string, variant ...identity.Variant) common.NameVersion {
-	return common.NewNameVersion(identity.NewServiceVersionVariantIdentity(sid, version, variant...).GetServiceVariantName(), version)
+	return common.NewNameVersion(identity.NewServiceVersionVariantId(sid, version, variant...).GetServiceVariantName(), version)
 }

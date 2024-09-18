@@ -4,5 +4,5 @@ services:
     type: OrdinaryService
     shortName: Kubernetes Cluster managed by Gardener with version 1.23.x
     contracts:
-      - service: acme.org/kubernetes/apis/cluster
+      - service: kubernetes.io/apis/cluster
         version: v1.23.0

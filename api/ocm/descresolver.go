@@ -119,7 +119,7 @@ func (r *versionResolver) ListVersions(id identity.ServiceIdentity, variant ...i
 	if versions == nil {
 		versions = []string{}
 		for _, v := range services.versions {
-			cand := identity.NewServiceVersionVariantIdentity(id, v, variant...)
+			cand := identity.NewServiceVersionVariantId(id, v, variant...)
 			s, err := r.Resolver.LookupServiceVersionVariant(cand)
 			if err != nil && !errors.IsErrNotFound(err) {
 				return nil, err

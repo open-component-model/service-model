@@ -18,10 +18,13 @@ const (
 )
 
 const (
-	DEP_DEPENDENCY  = crossref.DEP_DEPENDENCY
-	DEP_DESCRIPTION = crossref.DEP_DESCRIPTION
-	DEP_MEET        = crossref.DEP_MEET
-	DEP_INSTALLER   = crossref.DEP_INSTALLER
+	DEP_DEPENDENCY  = crossref.DEP_DEPENDS
+	DEP_INSTANCE    = crossref.DEP_INSTANCE
+	DEP_INSTALLEDBY = crossref.DEP_INSTALLEDBY
+	DEP_SATISFIES   = crossref.DEP_SATISFIES
+	DEP_MANAGES     = crossref.DEP_MANAGES
+	DEP_INSTALLS    = crossref.DEP_INSTALLS
+	DEP_OTHER       = crossref.DEP_OTHER
 )
 
 const (

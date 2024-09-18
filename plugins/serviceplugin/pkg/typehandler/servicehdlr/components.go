@@ -55,7 +55,7 @@ func (t *Components) All() ([]output.Object, error) {
 			return nil, err
 		}
 		for _, s := range m.Services {
-			t.Add(&result, NewObject(nil, generics.Pointer(s)))
+			t.Add(&result, NewObject(nil, "", generics.Pointer(s)))
 		}
 	}
 	return result, nil
@@ -79,7 +79,7 @@ func (t *Components) Get(spec cmdutils.ElemSpec) ([]output.Object, error) {
 		if id.Component() != "" && c.ComponentVersion.GetName() != id.Component() {
 			continue
 		}
-		svid := identity.NewServiceVersionVariantIdentity(identity.NewServiceId(c.ComponentVersion.GetName(), id.Name()), c.ComponentVersion.GetVersion(), id.Variant)
+		svid := identity.NewServiceVersionVariantId(identity.NewServiceId(c.ComponentVersion.GetName(), id.Name()), c.ComponentVersion.GetVersion(), id.Variant())
 		s, err := t.Services.get(svid)
 		if err != nil && !errors.IsErrNotFound(err) {
 			return nil, err

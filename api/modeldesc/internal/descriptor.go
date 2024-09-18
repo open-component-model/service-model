@@ -28,7 +28,6 @@ type CommonServiceSpec = metav1.CommonServiceSpec
 type ServiceKindSpec interface {
 	runtime.TypedObject
 	GetVariant() identity.Variant
-	GetDependencies() []metav1.Dependency
 
 	Copy() ServiceKindSpec
 	ToCanonicalForm(c DescriptionContext) ServiceKindSpec
@@ -43,11 +42,16 @@ type ServiceDescriptor struct {
 }
 
 func (d *ServiceDescriptor) GetId() identity.ServiceVersionVariantIdentity {
-	return identity.NewServiceVersionVariantIdentityFor(d.CommonServiceSpec.GetId(), d.Kind.GetVariant())
+	return identity.NewServiceVersionVariantIdFor(d.CommonServiceSpec.GetId(), d.Kind.GetVariant())
 }
 
 func (d *ServiceDescriptor) GetVariant() identity.Variant {
 	return d.Kind.GetVariant()
+}
+
+func (d *ServiceDescriptor) GetReferences() crossref.References {
+	list := d.Kind.GetReferences()
+	return list
 }
 
 func (d *ServiceDescriptor) Copy() *ServiceDescriptor {
