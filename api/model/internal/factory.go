@@ -6,35 +6,40 @@ import (
 	"sync"
 )
 
-var DefaultFactory = NewFactory()
+type ServiceKindRegistry interface {
+	Register(kind string, factory FactoryFunc)
+	Create(m Model, descriptor *modeldesc.ServiceDescriptor) (ServiceVersionVariant, error)
+}
+
+var DefaultServiceKindRegistry = NewKindRegistry()
 
 type FactoryFunc func(m Model, s *modeldesc.ServiceDescriptor) (ServiceVersionVariant, error)
 
-type Factory struct {
+type registry struct {
 	lock      sync.Mutex
 	factories map[string]FactoryFunc
 }
 
-func NewFactory() *Factory {
-	return &Factory{
+func NewKindRegistry() ServiceKindRegistry {
+	return &registry{
 		factories: make(map[string]FactoryFunc),
 	}
 }
 
-func (f *Factory) Register(kind string, factory FactoryFunc) {
+func (f *registry) Register(kind string, factory FactoryFunc) {
 	f.lock.Lock()
 	defer f.lock.Unlock()
 
 	f.factories[kind] = factory
 }
 
-func (f *Factory) Create(m Model, descriptor *modeldesc.ServiceDescriptor) (ServiceVersionVariant, error) {
+func (f *registry) Create(m Model, descriptor *modeldesc.ServiceDescriptor) (ServiceVersionVariant, error) {
 	f.lock.Lock()
 	defer f.lock.Unlock()
 
-	factory := f.factories[descriptor.Kind.GetType()]
-	if factory == nil {
+	fac := f.factories[descriptor.Kind.GetType()]
+	if fac == nil {
 		return nil, errors.ErrUnknown(modeldesc.KIND_SERVICE_TYPE, descriptor.Kind.GetType())
 	}
-	return factory(m, descriptor)
+	return fac(m, descriptor)
 }

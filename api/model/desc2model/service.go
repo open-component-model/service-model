@@ -6,5 +6,5 @@ import (
 )
 
 func ServiceDescriptorToModelService(model internal.Model, desc *modeldesc.ServiceDescriptor) (internal.ServiceVersionVariant, error) {
-	return internal.DefaultFactory.Create(model, desc)
+	return internal.DefaultServiceKindRegistry.Create(model, desc)
 }

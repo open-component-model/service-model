@@ -2,6 +2,7 @@ package common
 
 import (
 	"github.com/open-component-model/service-model/api/identity"
+	"github.com/open-component-model/service-model/api/model/internal"
 	"github.com/open-component-model/service-model/api/modeldesc"
 )
 
@@ -39,4 +40,20 @@ func (s *ServiceVersionVariant) GetVersion() string {
 
 func (s *ServiceVersionVariant) GetVariant() identity.Variant {
 	return s.spec.Kind.GetVariant()
+}
+
+func (s *ServiceVersionVariant) AsServiceContract() internal.ServiceContract {
+	return nil
+}
+
+func (s *ServiceVersionVariant) AsInstallationService() internal.InstallationService {
+	return nil
+}
+
+func (s *ServiceVersionVariant) AsOrdinaryService() internal.OrdinaryService {
+	return nil
+}
+
+func (s *ServiceVersionVariant) AsServiceProvider() internal.ServiceProvider {
+	return nil
 }

@@ -2,10 +2,12 @@ package internal
 
 import (
 	"github.com/open-component-model/service-model/api/identity"
-	"github.com/open-component-model/service-model/api/model/internal/common"
+	metav1 "github.com/open-component-model/service-model/api/meta/v1"
+	"ocm.software/ocm/api/utils/runtime"
 )
 
 type Model interface {
+	GetServiceKindRegistry() ServiceKindRegistry
 	GetServiceVersionVariant(id identity.ServiceVersionVariantIdentity) (ServiceVersionVariant, error)
 }
 
@@ -21,9 +23,23 @@ type ServiceVersionVariant interface {
 	GetComponent() string
 	GetVersion() string
 	GetVariant() identity.Variant
+
+	AsServiceContract() ServiceContract
+	AsInstallationService() InstallationService
+	AsOrdinaryService() OrdinaryService
+	AsServiceProvider() ServiceProvider
 }
 
 type ServiceContract interface {
-	common.ServiceVersionVariant
-	GetSpecification() string
+	ServiceVersionVariant
+	GetAPISpecificationType() string
+	GetAPISpecVersion() string
+	GetSpecification() *runtime.RawValue
+	GetArtifact() *metav1.ResourceReference
 }
+
+type InstallationService interface{}
+
+type OrdinaryService interface{}
+
+type ServiceProvider interface{}

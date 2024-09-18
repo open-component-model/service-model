@@ -19,7 +19,7 @@ type ServiceSpec struct {
 
 	TargetEnvironment metav1.TargetEnvironment `json:"targetEnvironment,omitempty"`
 	InstalledService  identity.ServiceIdentity `json:"installedService,omitempty"`
-	Versions          []string                 `json:"versions,omitempty"`
+	VersionVariants   []metav1.VersionVariant  `json:"versionVariants,omitempty"`
 	InstallerResource metav1.ResourceReference `json:"installerResource"`
 	InstallerType     string                   `json:"installerType"`
 }
