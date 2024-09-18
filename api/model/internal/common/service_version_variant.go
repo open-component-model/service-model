@@ -13,7 +13,7 @@ type ServiceVersionVariant struct {
 
 func New(spec *modeldesc.ServiceDescriptor) *ServiceVersionVariant {
 	return &ServiceVersionVariant{
-		id:   identity.NewServiceVersionVariantIdentity(spec.Service, spec.Version, spec.Kind.GetVariant()),
+		id:   identity.NewServiceVersionVariantId(spec.Service, spec.Version, spec.Kind.GetVariant()),
 		spec: spec.Copy(),
 	}
 }

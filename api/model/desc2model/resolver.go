@@ -14,7 +14,7 @@ func NewResolver(r modeldesc.VersionResolver) model.Resolver {
 	return &resolver{r}
 }
 
-func (r resolver) LookupServiceVersionVariant(model model.Model, id identity.ServiceVersionVariantIdentity) (model.Service, error) {
+func (r resolver) LookupServiceVersionVariant(model model.Model, id identity.ServiceVersionVariantIdentity) (model.ServiceVersionVariant, error) {
 	s, err := r.resolver.LookupServiceVersionVariant(id)
 	if s == nil || err != nil {
 		return nil, err

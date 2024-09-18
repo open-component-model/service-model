@@ -170,7 +170,10 @@ var _ = Describe("cliplugin", func() {
   - acme.org/gardener/service/provider:v1.0.0
   element:
     services:
-    - installedService: acme.org/gardener/service/provider
+    - installedServices:
+      - service: acme.org/gardener/service/provider
+        versions:
+        - v1.0.0
       installerResource:
         resource:
           name: installer
@@ -181,8 +184,6 @@ var _ = Describe("cliplugin", func() {
         type: KubernetesCluster
       type: InstallationService
       version: v1.0.0
-      versions:
-      - v1.0.0
     type: serviceModelDescription/v1
   service: acme.org/gardener/service/installer
   version: v1.0.0

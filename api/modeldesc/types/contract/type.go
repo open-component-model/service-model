@@ -40,20 +40,6 @@ func (s *ServiceSpec) GetVariant() identity.Variant {
 	return nil
 }
 
-func (s *ServiceSpec) Copy() internal.ServiceKindSpec {
-	var spec *runtime.RawValue
-	if s.Specification != nil {
-		spec = generics.Pointer(s.Specification.Copy())
-	}
-	return &ServiceSpec{
-		ObjectTypedObject:    runtime.NewTypedObject(s.GetType()),
-		APISpecificationType: s.APISpecificationType,
-		APISpecVersion:       s.APISpecVersion,
-		Specification:        spec,
-		Artifact:             s.Artifact.Copy(),
-	}
-}
-
 func (s *ServiceSpec) ToCanonicalForm(c internal.DescriptionContext) internal.ServiceKindSpec {
 	r := *s
 	if r.Specification != nil {

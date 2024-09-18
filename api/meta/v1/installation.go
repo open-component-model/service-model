@@ -2,7 +2,10 @@ package v1
 
 import (
 	"github.com/mandelsoft/goutils/sliceutils"
+	"github.com/open-component-model/service-model/api/identity"
+	"github.com/open-component-model/service-model/api/utils"
 	ocmmeta "ocm.software/ocm/api/ocm/compdesc/meta/v1"
+	"slices"
 )
 
 type TargetEnvironment = ocmmeta.StringMap
@@ -29,3 +32,19 @@ func (r *ResourceReference) Copy() *ResourceReference {
 	}
 	return &c
 }
+
+////////////////////////////////////////////////////////////////////////////////
+
+type InstalledService struct {
+	Service  identity.ServiceIdentity `json:"service,omitempty"`
+	Versions []string                 `json:"versions,omitempty"`
+	Variant  identity.Variant         `json:"variant,omitempty"`
+}
+
+func (s InstalledService) Copy() *InstalledService {
+	s.Variant = s.Variant.Copy()
+	s.Versions = slices.Clone(s.Versions)
+	return &s
+}
+
+type InstalledServices = utils.CopyableList[InstalledService]

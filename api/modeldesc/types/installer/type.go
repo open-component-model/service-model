@@ -2,12 +2,8 @@ package installer
 
 import (
 	"fmt"
-	"slices"
-
 	"github.com/mandelsoft/goutils/errors"
 	"github.com/open-component-model/service-model/api/crossref"
-	"github.com/open-component-model/service-model/api/identity"
-
 	metav1 "github.com/open-component-model/service-model/api/meta/v1"
 	"github.com/open-component-model/service-model/api/modeldesc/internal"
 )
@@ -18,8 +14,7 @@ type ServiceSpec struct {
 	metav1.CommonServiceImplementationSpec
 
 	TargetEnvironment metav1.TargetEnvironment `json:"targetEnvironment,omitempty"`
-	InstalledService  identity.ServiceIdentity `json:"installedService,omitempty"`
-	VersionVariants   []metav1.VersionVariant  `json:"versionVariants,omitempty"`
+	InstalledServices metav1.InstalledServices `json:"installedServices,omitempty"`
 	InstallerResource metav1.ResourceReference `json:"installerResource"`
 	InstallerType     string                   `json:"installerType"`
 }
@@ -28,8 +23,7 @@ func (s *ServiceSpec) Copy() internal.ServiceKindSpec {
 	return &ServiceSpec{
 		CommonServiceImplementationSpec: *s.CommonServiceImplementationSpec.Copy(),
 		TargetEnvironment:               s.TargetEnvironment.Copy(),
-		InstalledService:                s.InstalledService,
-		Versions:                        slices.Clone(s.Versions),
+		InstalledServices:               s.InstalledServices.Copy(),
 		InstallerResource:               *s.InstallerResource.Copy(),
 		InstallerType:                   s.InstallerType,
 	}
@@ -39,12 +33,15 @@ func (s *ServiceSpec) ToCanonicalForm(c internal.DescriptionContext) internal.Se
 	r := *s
 	r.CommonServiceImplementationSpec = *internal.CommonServiceImplementationSpecToCanonicalForm(&r.CommonServiceImplementationSpec, c)
 
-	if s.InstalledService.Name() != "" {
-		if r.InstalledService.IsRelative() {
-			r.InstalledService = r.InstalledService.ForComponent(c.GetName())
-		}
-		if len(r.Versions) == 0 {
-			r.Versions = []string{c.GetVersion()}
+	for i, is := range r.InstalledServices {
+		if is.Service.Name() != "" {
+			if is.Service.IsRelative() {
+				is.Service = is.Service.ForComponent(c.GetName())
+			}
+			if len(is.Versions) == 0 {
+				is.Versions = []string{c.GetVersion()}
+			}
+			r.InstalledServices[i] = is
 		}
 	}
 	return &r
@@ -53,15 +50,14 @@ func (s *ServiceSpec) ToCanonicalForm(c internal.DescriptionContext) internal.Se
 func (s *ServiceSpec) Validate(c internal.DescriptionContext) error {
 	var list errors.ErrorList
 
-	if s.InstalledService.Name() != "" {
-		if s.InstalledService.Component() == c.GetName() || s.InstalledService.Component() == "" {
-			if c.LookupService(s.InstalledService.Name()) == nil {
-				list.Add(fmt.Errorf("local installer service %q not defined", s.InstalledService.Name()))
-			}
+	for i, is := range s.InstalledServices {
+		if is.Service.Name() == "" {
+			list.Add(fmt.Errorf("InstalledService #%d must have a name", i))
 		}
-	} else {
-		if len(s.Versions) > 0 {
-			list.Add(fmt.Errorf("versions must not be set for omitted installedService"))
+		if is.Service.Component() == c.GetName() || is.Service.Component() == "" {
+			if c.LookupService(is.Service.Name()) == nil {
+				list.Add(fmt.Errorf("local installer service %q not defined", is.Service.Name()))
+			}
 		}
 	}
 	if s.InstallerType == "" {
@@ -75,6 +71,8 @@ func (s *ServiceSpec) GetReferences() crossref.References {
 	var refs crossref.References
 
 	refs.Add(internal.CommonServiceImplementationReferences(&s.CommonServiceImplementationSpec)...)
-	crossref.AddVersionReferences(&refs, "", s.InstalledService, s.Variant, crossref.DEP_INSTALLS, s.Versions...)
+	for _, is := range s.InstalledServices {
+		crossref.AddVersionReferences(&refs, "", is.Service, is.Variant, crossref.DEP_INSTALLS, is.Versions...)
+	}
 	return refs
 }

@@ -1,9 +1,6 @@
 package installer
 
 import (
-	"slices"
-
-	"github.com/open-component-model/service-model/api/identity"
 	metav1 "github.com/open-component-model/service-model/api/meta/v1"
 	modeldesc "github.com/open-component-model/service-model/api/modeldesc/internal"
 	me "github.com/open-component-model/service-model/api/modeldesc/types/installer"
@@ -19,8 +16,7 @@ type ServiceSpec struct {
 	metav1.CommonServiceImplementationSpec
 
 	TargetEnvironment metav1.TargetEnvironment `json:"targetEnvironment,omitempty"`
-	InstalledService  identity.ServiceIdentity `json:"installedService,omitempty"`
-	Versions          []string                 `json:"versions,omitempty"`
+	InstalledServices metav1.InstalledServices `json:"installedServices,omitempty"`
 	InstallerResource metav1.ResourceReference `json:"installerResource"`
 	InstallerType     string                   `json:"installerType"`
 }
@@ -32,8 +28,7 @@ func (c Converter) ConvertFrom(object modeldesc.ServiceKindSpec) (vpi.ServiceKin
 	return &ServiceSpec{
 		CommonServiceImplementationSpec: *in.CommonServiceImplementationSpec.Copy(),
 		TargetEnvironment:               in.TargetEnvironment.Copy(),
-		InstalledService:                in.InstalledService,
-		Versions:                        slices.Clone(in.Versions),
+		InstalledServices:               in.InstalledServices.Copy(),
 		InstallerResource:               in.InstallerResource,
 		InstallerType:                   in.InstallerType,
 	}, nil
@@ -44,8 +39,7 @@ func (c Converter) ConvertTo(object vpi.ServiceKindSpec) (modeldesc.ServiceKindS
 	return &me.ServiceSpec{
 		CommonServiceImplementationSpec: *in.CommonServiceImplementationSpec.Copy(),
 		TargetEnvironment:               in.TargetEnvironment.Copy(),
-		InstalledService:                in.InstalledService,
-		Versions:                        slices.Clone(in.Versions),
+		InstalledServices:               in.InstalledServices.Copy(),
 		InstallerResource:               in.InstallerResource,
 		InstallerType:                   in.InstallerType,
 	}, nil

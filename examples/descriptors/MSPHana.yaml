@@ -26,7 +26,8 @@ services:
   - service: installer
     type: InstallationService
     shortName: Installer for HaaS
-    installedService: provider
+    installedServices:
+      - service: provider
     targetEnvironment:
       type: KubernetesCluster
 

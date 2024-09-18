@@ -3,7 +3,6 @@ package installer
 import (
 	"fmt"
 	"github.com/open-component-model/service-model/api/identity"
-	v1 "github.com/open-component-model/service-model/api/meta/v1"
 	"github.com/open-component-model/service-model/api/model"
 	"github.com/open-component-model/service-model/api/model/internal"
 	"github.com/open-component-model/service-model/api/model/internal/common"
@@ -55,9 +54,5 @@ func (s *ServiceVersionVariant) GetInheritFromService() (internal.ServiceVersion
 	if s.spec.InheritFrom == nil {
 		return nil, fmt.Errorf("service does not inherit and therefore has no parent")
 	}
-	return s.model.GetServiceVersionVariant(identity.NewServiceVersionVariantIdentityFor(s.GetIdentity().ServiceVersionIdentity(), s.spec.InheritFrom))
-}
-
-func (s *ServiceVersionVariant) GetDependencies() v1.Dependencies {
-	return s.spec.Dependencies[0]
+	return s.model.GetServiceVersionVariant(identity.NewServiceVersionVariantIdFor(s.GetIdentity().ServiceVersionIdentity(), s.spec.InheritFrom))
 }

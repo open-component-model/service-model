@@ -63,7 +63,7 @@ var _ = Describe("Test Environment", func() {
 
 	Context("get from ocm", func() {
 		It("read k8s cluster contract", func() {
-			s := Must(m.GetServiceVersionVariant(identity.NewServiceVersionVariantIdentity(identity.NewServiceId(examples.COMP_CONTRACT_K8S_CLUSTER_22, examples.NAME_CONTRACT_K8S_CLUSTER_22), examples.VERS_CONTRACT_K8S_CLUSTER_22)))
+			s := Must(m.GetServiceVersionVariant(identity.NewServiceVersionVariantId(identity.NewServiceId(examples.COMP_CONTRACT_K8S_CLUSTER_22, examples.NAME_CONTRACT_K8S_CLUSTER_22), examples.VERS_CONTRACT_K8S_CLUSTER_22)))
 			Expect(s).NotTo(BeNil())
 			Expect(s.GetType()).To(Equal(contract.TYPE))
 			Expect(s.GetComponent()).To(Equal(examples.COMP_CONTRACT_K8S_CLUSTER_22))

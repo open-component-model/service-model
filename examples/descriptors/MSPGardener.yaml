@@ -16,7 +16,8 @@ services:
   - service: installer
     type: InstallationService
     shortName: Installer for Gardener
-    installedService: provider
+    installedServices:
+      - service: provider
     targetEnvironment:
       type: KubernetesCluster
     installerType: Deplomat

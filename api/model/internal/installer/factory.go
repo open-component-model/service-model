@@ -2,7 +2,6 @@ package installer
 
 import (
 	"fmt"
-	"github.com/open-component-model/service-model/api/identity"
 	metav1 "github.com/open-component-model/service-model/api/meta/v1"
 	"github.com/open-component-model/service-model/api/model/internal"
 	"github.com/open-component-model/service-model/api/model/internal/common"
@@ -36,14 +35,6 @@ func (s *ServiceVersionVariant) AsIntallationService() internal.InstallationServ
 
 func (s *ServiceVersionVariant) GetTargetEnviroment() metav1.TargetEnvironment {
 	return s.spec.TargetEnvironment
-}
-
-func (s *ServiceVersionVariant) GetInstalledServiceIdentity() identity.ServiceIdentity {
-	return s.spec.InstalledService
-}
-
-func (s *ServiceVersionVariant) GetInstalledServiceVersions() []string {
-	return s.spec.Versions
 }
 
 func (s *ServiceVersionVariant) GetInstallerResource() metav1.ResourceReference {

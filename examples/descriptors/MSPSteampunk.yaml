@@ -43,7 +43,8 @@ services:
   - service: installer
     type: InstallationService
     shortName: Installer for Steampunk
-    installedService: provider
+    installedServices:
+      - service: provider
     targetEnvironment:
       type: KubernetesCluster
 

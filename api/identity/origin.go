@@ -44,17 +44,6 @@ func (o Origin) Equals(a Origin) bool {
 	return reflect.DeepEqual(o, a)
 }
 
-func (o Origin) Copy() Origin {
-	if o == nil {
-		return nil
-	}
-	n := map[string]map[string]string{}
-	for k, v := range o {
-		n[k] = maps.Clone(v)
-	}
-	return n
-}
-
 const (
 	ORIG_COMP     = "component"
 	ORIG_VERS     = "version"

@@ -61,9 +61,10 @@ services:
       version: v1
   targetEnvironment:
     iaas: AWS
-  installedService: test
-  versions:
-  - v1
+  installedServices:
+    - service: test
+      versions:
+        - v1
   installerResource:
     resource:
       name: rsc1
