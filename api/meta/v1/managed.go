@@ -20,6 +20,7 @@ const (
 type ManagedServices = utils.CopyableList[ManagedService]
 
 type ManagedService struct {
+	Name                  string                   `json:"name,omitempty"`
 	Service               identity.ServiceIdentity `json:"service"`
 	Variant               identity.Variant         `json:"variant,omitempty"`
 	Versions              []string                 `json:"versions,omitempty"`

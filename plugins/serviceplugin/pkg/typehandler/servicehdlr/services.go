@@ -2,10 +2,13 @@ package servicehdlr
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/mandelsoft/goutils/generics"
 	"github.com/mandelsoft/goutils/optionutils"
 	"github.com/open-component-model/service-model/api/identity"
 	"github.com/open-component-model/service-model/api/modeldesc"
+	"github.com/open-component-model/service-model/api/modeldesc/types/provider"
 	modelocm "github.com/open-component-model/service-model/api/ocm"
 	"ocm.software/ocm/api/ocm"
 	"ocm.software/ocm/api/utils/semverutils"
@@ -34,9 +37,18 @@ func (t *Services) All() ([]output.Object, error) {
 	return nil, nil
 }
 
-func (t *Services) Get(name utils.ElemSpec) ([]output.Object, error) {
+func (t *Services) Get(spec utils.ElemSpec) ([]output.Object, error) {
+	var managed *string
+
+	name := spec.String()
+
+	if idx := strings.Index(name, "@"); idx >= 0 {
+		managed = generics.Pointer(name[:idx])
+		name = name[idx+1:]
+	}
+
 	var id identity.ServiceVersionVariantIdentity
-	err := id.Parse(name.String())
+	err := id.Parse(name)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +66,7 @@ func (t *Services) Get(name utils.ElemSpec) ([]output.Object, error) {
 
 		var result []output.Object
 		for _, v := range versions {
-			l, err := t.get(identity.NewServiceVersionVariantId(id.ServiceIdentity(), v, id.Variant()))
+			l, err := t.get(identity.NewServiceVersionVariantId(id.ServiceIdentity(), v, id.Variant()), managed)
 			if err != nil {
 				return nil, err
 			}
@@ -62,21 +74,42 @@ func (t *Services) Get(name utils.ElemSpec) ([]output.Object, error) {
 		}
 		return result, nil
 	}
-	return t.get(id)
+	return t.get(id, managed)
 }
 
-func (t *Services) get(id identity.ServiceVersionVariantIdentity) ([]output.Object, error) {
+func (t *Services) get(id identity.ServiceVersionVariantIdentity, managed *string) ([]output.Object, error) {
 	s, err := t.resolver.LookupServiceVersionVariant(id)
 	if err != nil {
 		return nil, err
 	}
-	obj := NewObject(nil, "", s)
-	if t.opts.state != nil {
-		t.opts.state.Add(obj.Element)
+	if managed == nil {
+		obj := NewObject(nil, "", s)
+		if t.opts.state != nil {
+			t.opts.state.Add(obj.Element)
+		}
+		var result []output.Object
+		t.Add(&result, obj)
+		return result, nil
 	}
-	var result []output.Object
-	t.Add(&result, obj)
-	return result, nil
+	if s.GetType() == provider.TYPE {
+		var result []output.Object
+		p := s.Kind.(*provider.ServiceSpec)
+		for _, m := range p.ManagedServices {
+			if *managed == "" || m.Name == *managed {
+				for _, v := range m.Versions {
+					id := identity.NewServiceVersionVariantId(m.Service, v, m.Variant)
+					list, err := t.get(id, nil)
+					if err != nil {
+						result = append(result, NewErrorObject(err, nil, modeldesc.DEP_MANAGES, m.Service, v, m.Variant))
+					} else {
+						result = append(result, list...)
+					}
+				}
+			}
+		}
+		return result, nil
+	}
+	return nil, fmt.Errorf("%s is no service provider", id)
 }
 
 func (t *Services) Add(list *[]output.Object, objs ...*Object) {

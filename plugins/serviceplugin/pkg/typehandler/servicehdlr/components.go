@@ -80,7 +80,7 @@ func (t *Components) Get(spec cmdutils.ElemSpec) ([]output.Object, error) {
 			continue
 		}
 		svid := identity.NewServiceVersionVariantId(identity.NewServiceId(c.ComponentVersion.GetName(), id.Name()), c.ComponentVersion.GetVersion(), id.Variant())
-		s, err := t.Services.get(svid)
+		s, err := t.Services.get(svid, nil)
 		if err != nil && !errors.IsErrNotFound(err) {
 			return nil, err
 		}

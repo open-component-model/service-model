@@ -41,6 +41,10 @@ type ServiceDescriptor struct {
 	Origin identity.Origin
 }
 
+func (d *ServiceDescriptor) GetType() string {
+	return d.Kind.GetType()
+}
+
 func (d *ServiceDescriptor) GetId() identity.ServiceVersionVariantIdentity {
 	return identity.NewServiceVersionVariantIdFor(d.CommonServiceSpec.GetId(), d.Kind.GetVariant())
 }
