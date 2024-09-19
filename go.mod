@@ -14,7 +14,7 @@ require (
 	github.com/onsi/gomega v1.34.2
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
-	ocm.software/ocm v0.15.1-0.20240918065015-fef1c8267deb
+	ocm.software/ocm v0.15.1-0.20240919152216-1a8e76ec0cdc
 )
 
 require (
