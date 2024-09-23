@@ -25,6 +25,7 @@ type Options struct {
 	constraints []*semver.Constraints
 	latestOnly  *bool
 	resolver    resolvers.ComponentVersionResolver
+	repo        ocm.Repository
 }
 
 func (o *Options) ApplyToServiceHandlerOptions(opts *Options) {
@@ -65,6 +66,20 @@ func OptionsFor(o options.OptionSetProvider) OptionList {
 		hopts = append(hopts, state)
 	}
 	return hopts
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+type repo struct {
+	repo ocm.Repository
+}
+
+func (o repo) ApplyToServiceHandlerOptions(opts *Options) {
+	opts.repo = o.repo
+}
+
+func Repository(r ocm.Repository) Option {
+	return repo{r}
 }
 
 ////////////////////////////////////////////////////////////////////////////////

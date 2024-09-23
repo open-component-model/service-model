@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/mandelsoft/goutils/finalizer"
 	"github.com/mandelsoft/goutils/generics"
 	"github.com/mandelsoft/goutils/optionutils"
 	"github.com/open-component-model/service-model/api/identity"
@@ -11,6 +12,7 @@ import (
 	"github.com/open-component-model/service-model/api/modeldesc/types/provider"
 	modelocm "github.com/open-component-model/service-model/api/ocm"
 	"ocm.software/ocm/api/ocm"
+	"ocm.software/ocm/api/utils/refmgmt"
 	"ocm.software/ocm/api/utils/semverutils"
 	"ocm.software/ocm/cmds/ocm/common/output"
 	"ocm.software/ocm/cmds/ocm/common/utils"
@@ -34,7 +36,55 @@ func forServices(resolver ocm.ComponentResolver, opts ...Option) *Services {
 }
 
 func (t *Services) All() ([]output.Object, error) {
-	return nil, nil
+	if t.opts.repo == nil {
+		return nil, nil
+	}
+
+	result := []output.Object{}
+	lister := t.opts.repo.ComponentLister()
+	if lister == nil {
+		return nil, fmt.Errorf("repository does not support listing components")
+	}
+
+	var finalize finalizer.Finalizer
+	defer finalize.Finalize()
+
+	list, err := lister.GetComponents("", true)
+	if err != nil {
+		return nil, err
+	}
+	for _, n := range list {
+		loop := finalize.Nested()
+		c, err := refmgmt.ToLazy(t.opts.repo.LookupComponent(n))
+		if err != nil {
+			return nil, err
+		}
+		loop.Close(c)
+		versions, err := c.ListVersions()
+		if err != nil {
+			return nil, err
+		}
+		for _, v := range versions {
+			cv, err := refmgmt.ToLazy(c.LookupVersion(v))
+			if err != nil {
+				continue
+			}
+
+			loop := loop.Nested()
+			loop.Close(cv)
+
+			m, _, err := modelocm.GetServiceModelFromCV(cv)
+			if err != nil {
+				return nil, err
+			}
+			for _, s := range m.Services {
+				t.Add(&result, NewObject(nil, "", generics.Pointer(s)))
+			}
+			loop.Finalize()
+		}
+		loop.Finalize()
+	}
+	return result, nil
 }
 
 func (t *Services) Get(spec utils.ElemSpec) ([]output.Object, error) {

@@ -138,7 +138,7 @@ func (c *command) Run(cmd *cobra.Command, args []string) error {
 			if resolver == nil {
 				return fmt.Errorf("no component resolver configured")
 			}
-			h = servicehdlr.ForServices(resolver, hopts)
+			h = servicehdlr.ForServices(resolver, hopts, servicehdlr.Repository(repo))
 		}
 	}
 
