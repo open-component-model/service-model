@@ -9,7 +9,7 @@ require (
 	github.com/mandelsoft/filepath v0.0.0-20240223090642-3e2777258aa3
 	github.com/mandelsoft/goutils v0.0.0-20240915132328-95975bffaef0
 	github.com/mandelsoft/logging v0.0.0-20240618075559-fdca28a87b0a
-	github.com/mandelsoft/vfs v0.4.4-0.20240915223828-8bc9369139c8
+	github.com/mandelsoft/vfs v0.4.4
 	github.com/onsi/ginkgo/v2 v2.20.2
 	github.com/onsi/gomega v1.34.2
 	github.com/spf13/cobra v1.8.1
