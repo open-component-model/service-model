@@ -5,7 +5,7 @@ go 1.24.2
 replace github.com/spf13/cobra => github.com/open-component-model/cobra v0.0.0-20230329075350-b1fd876abfb9
 
 require (
-	github.com/Masterminds/semver/v3 v3.3.1
+	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/mandelsoft/filepath v0.0.0-20240223090642-3e2777258aa3
 	github.com/mandelsoft/goutils v0.0.0-20241005173814-114fa825bbdc
 	github.com/mandelsoft/logging v0.0.0-20240618075559-fdca28a87b0a
